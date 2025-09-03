@@ -1,196 +1,228 @@
-# HPE OneLead Business Intelligence System
+# 🎯 HPE OneLead Business Intelligence Dashboard
 
-A predictive analytics platform that leverages internal HPE data to surface high-propensity "OneLead" opportunities, enabling HPE consultants to proactively engage customers with relevant solutions that have strong likelihood of conversion.
+A comprehensive Streamlit-based business intelligence platform for HPE sales teams to analyze customer opportunities, predict propensity, and identify service cross-sell opportunities.
 
-## 🎯 Objectives
+## 🚀 Features
 
-- **Data-Driven Opportunity Identification**: Analyze historical and real-time HPE data to identify patterns and signals that indicate strong buying intent or solution fit
-- **Customer Account-Level Insights**: Generate opportunity insights at the account level, enabling targeted outreach and personalized engagement strategies
-- **Proactive Consultant Enablement**: Equip consultants with actionable intelligence to initiate meaningful conversations with customers
-- **OneLead Strategy Alignment**: Support HPE's vision of driving consultative, value-led engagements that lead to measurable business outcomes
+### 📊 **Business Intelligence Dashboard**
+- **6 Interactive Tabs** with business-focused insights
+- **Real-time Metrics** showing actionable business data
+- **Customer Name Display** throughout the interface
+- **Export Capabilities** for sales team collaboration
 
-## 🏗️ System Architecture
+### 🤖 **Machine Learning Powered**
+- **Opportunity Prediction** using Gradient Boosting models
+- **Customer Segmentation** (Strategic, High Value, At Risk, Dormant, Growing)
+- **RFM Scoring** for customer value analysis
+- **Propensity Scoring** for opportunity prioritization
 
-### Data Processing Layer
-- **Data Loader**: Ingests multi-sheet Excel data with comprehensive preprocessing
-- **Feature Engineering**: Creates RFM scoring, urgency indicators, and customer engagement metrics
-- **Data Quality**: Handles missing data, data type conversions, and validation
+### 🔄 **Service Recommendations**
+- **Product-to-Service Mapping** connecting opportunities to HPE services
+- **Cross-sell Identification** for revenue expansion
+- **Priority Scoring** for opportunity ranking
+- **Actionable Insights** for consultant engagement
 
-### Machine Learning Layer
-- **Opportunity Predictor**: Gradient Boosting model for customer propensity scoring
-- **Feature Importance**: Identifies key drivers of opportunity conversion
-- **Synthetic Label Generation**: Creates training labels based on business rules
+## 📈 **Business Impact**
 
-### Business Intelligence Layer
-- **Streamlit Dashboard**: Interactive web interface for opportunity exploration
-- **Consultant Recommendations**: Actionable recommendations with conversation starters
-- **Executive Reporting**: High-level metrics and KPIs for leadership
+- 🔴 **$405K Revenue at Risk** from 27 expired products
+- 🎯 **98 Opportunities Mapped** to relevant HPE services
+- 👥 **Customer Segmentation** across 8 key accounts
+- 📊 **Data-Driven Insights** for strategic decision making
 
-## 📊 Key Features
+## 🗂️ **Project Structure**
 
-### Opportunity Scoring
-- **Propensity Levels**: High/Medium/Low classification with confidence scores
-- **Urgency Scoring**: Product lifecycle and contract renewal urgency
-- **RFM Analysis**: Recency, Frequency, Monetary customer segmentation
-
-### Business Intelligence
-- **Renewal Opportunities**: Product end-of-life and contract renewal tracking
-- **Cross-sell Identification**: Platform diversity analysis for expansion opportunities
-- **Service Expansion**: Credit utilization analysis for service growth
-- **Customer Health**: Project success rates and engagement patterns
-
-### Consultant Enablement
-- **Prioritized Pipeline**: Ranked opportunities with actionable insights
-- **Conversation Starters**: Personalized outreach templates
-- **Action Categories**: Organized by renewal, cross-sell, service expansion
-- **Risk Flags**: Early warning indicators for account risk
-
-## 🚀 Quick Start
-
-### 1. Environment Setup
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Ensure data file is in place
-# Place onelead_consolidated_data_new.xlsx in data/ directory
+```
+onelead_system/
+├── src/
+│   ├── main_business.py              # 🎯 Main business dashboard
+│   ├── data_processing/
+│   │   ├── data_loader_v2.py         # 📥 Data ingestion from Excel
+│   │   ├── feature_engineering_v2.py # 🔧 ML feature pipeline
+│   │   └── service_opportunity_mapper.py # 🔗 Service mapping logic
+│   ├── models/
+│   │   └── opportunity_predictor.py   # 🤖 ML prediction model
+│   └── utils/
+│       └── customer_name_mapper.py   # 👤 Customer name resolution
+├── data/
+│   ├── DataExportAug29th.xlsx        # 📊 Primary data source
+│   └── ER_Diagram.md                 # 📋 Data relationship docs
+├── docs/
+│   └── dashboard_pages/              # 📖 Page-by-page documentation
+└── visualizations/                   # 📈 EDA reports and charts
 ```
 
-### 2. Run Complete Analysis
-```bash
-# Execute full pipeline analysis
-python run_analysis.py
-```
+## 🛠️ **Installation & Setup**
 
-This will:
-- Load and process all data sheets
-- Engineer predictive features
-- Train the ML model
-- Generate customer predictions
-- Create consultant recommendations
-- Save results to data/outputs/
+### Prerequisites
+- Python 3.8+
+- pip package manager
 
-### 3. Launch Interactive Dashboard
-```bash
-# Start Streamlit application
-streamlit run src/main.py
-```
+### Quick Start
 
-Navigate to the provided URL to access the interactive dashboard.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/jjayarajdev/onelead.git
+   cd onelead_system
+   ```
 
-## 📋 Dashboard Views
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Executive Dashboard
-- High-level opportunity metrics
-- Propensity distribution analysis
-- Key performance indicators
-- Top priority opportunities
+3. **Run the dashboard**
+   ```bash
+   streamlit run src/main_business.py
+   ```
 
-### Opportunity Pipeline
-- Filtered and ranked opportunities
-- Confidence scoring
-- Export capabilities
-- Customizable views
+4. **Access the application**
+   - Open your browser to `http://localhost:8501`
+   - Navigate through the 6 dashboard tabs
 
-### Customer Deep Dive
-- Individual customer analysis
-- Radar charts and profiling
-- Personalized recommendations
-- Historical engagement patterns
+## 📊 **Dashboard Pages Overview**
 
-### Raw Data Analysis
-- Comprehensive analysis of all 5 Excel data sources
-- Interactive data source exploration
-- Missing data analysis and quality assessment
-- Business insights by data category (Install Base, Opportunities, Service Credits, Projects, Services)
-- Data quality scoring and recommendations
-- Export capabilities for raw data reports
+| Page | Purpose | Key Insights |
+|------|---------|--------------|
+| 🚨 **Action Required** | Immediate priorities | Expired products, unused credits, unsupported items |
+| 💰 **Revenue Focus** | Financial opportunities | Revenue at risk, top customers, growth targets |
+| 👥 **Customer Health** | Relationship status | Customer segments, health scores, risk indicators |
+| 🎯 **Service Recommendations** | Cross-sell opportunities | Product-to-service mapping, priority scoring |
+| 📊 **Business Metrics** | Performance overview | KPIs, trends, comparative analysis |
+| 🔍 **Deep Dive** | Detailed analysis | Segmentation, utilization, raw data explorer |
 
-### Predictive Analytics
-- Model performance metrics
-- Feature importance analysis
-- Prediction distributions
-- Cross-validation results
+> 📖 **Detailed documentation for each page is available in [`docs/dashboard_pages/`](docs/dashboard_pages/)**
 
-### Consultant Enablement
-- Action-oriented opportunity lists
-- Conversation starter templates
-- Categorized by urgency and type
-- Export for CRM integration
+## 🔧 **Technical Architecture**
 
-### Data Insights
-- Data quality metrics
-- Feature distributions
-- Correlation analysis
-- System health monitoring
+### **Data Processing Pipeline**
+1. **Data Ingestion** - Excel files with 5 sheets (Install Base, Opportunities, A&PS Projects, Services, Service Credits)
+2. **Feature Engineering** - RFM scoring, urgency metrics, propensity calculations
+3. **ML Pipeline** - Gradient Boosting classifier for opportunity prediction
+4. **Service Mapping** - Product line to service recommendations
+5. **Visualization** - Streamlit dashboard with interactive components
 
-## 📈 Business Impact
+### **Key Components**
 
-### For HPE Consultants
-- **Prioritized Outreach**: Focus on highest-propensity opportunities
-- **Personalized Engagement**: Tailored conversation starters and recommendations
-- **Timing Optimization**: Proactive outreach based on urgency indicators
-- **Success Tracking**: Monitor engagement outcomes and model performance
-
-### For HPE Leadership
-- **Pipeline Visibility**: Clear view of opportunity landscape
-- **Resource Allocation**: Data-driven consultant assignment
-- **Performance Metrics**: Track conversion rates and revenue impact
-- **Strategic Planning**: Identify market trends and customer patterns
-
-### Key Metrics Tracked
-- **Opportunity Propensity**: Likelihood of customer engagement
-- **Renewal Risk**: Product and contract lifecycle management
-- **Cross-sell Potential**: Revenue expansion opportunities
-- **Customer Health**: Engagement quality and satisfaction
-- **Consultant Effectiveness**: Outreach success rates
-
-## 🔧 Technical Architecture
-
-### Data Sources (5 sheets, 8,838 records)
-- **Install Base**: Hardware lifecycle and support tracking
-- **Opportunities**: Active sales pipeline
-- **Service Credits**: Service utilization and contracts
-- **Projects**: Historical delivery and engagement
-- **Services**: Service catalog and capabilities
-
-### Feature Engineering (80+ features)
-- **Temporal Features**: Days to expiration, engagement recency
-- **Aggregation Features**: Customer totals, averages, counts
-- **Risk Indicators**: EOL urgency, underutilization flags
-- **Behavioral Patterns**: Success rates, diversity metrics
-
-### ML Pipeline
+#### 🧠 **Machine Learning**
 - **Model**: Gradient Boosting Classifier
-- **Features**: 20+ key predictive variables
-- **Labels**: Business rule-based synthetic targets
-- **Validation**: 5-fold cross-validation
-- **Monitoring**: Feature importance tracking
+- **Features**: 20+ engineered features including RFM scores, urgency metrics
+- **Training**: Synthetic labels based on business rules
+- **Accuracy**: 100% on limited dataset with cross-validation
 
-## 🛡️ Security & Privacy
+#### 📊 **Data Sources**
+- **Install Base**: 63 product records across customers
+- **Opportunities**: 98 active sales opportunities  
+- **A&PS Projects**: 2,394 historical project records
+- **Services**: 286 available HPE service offerings
+- **Service Credits**: 1,384 credit utilization records
 
-- **Data Protection**: Sensitive customer data handled securely
-- **Access Control**: Role-based dashboard access
-- **Audit Trail**: Model predictions and consultant actions logged
-- **Compliance**: Follows HPE data governance standards
+#### 🎯 **Business Logic**
+- **Customer Segmentation**: Rule-based classification using opportunity count and product status
+- **Priority Scoring**: Weighted scoring system for opportunity ranking
+- **Risk Assessment**: EOL/EOS product identification and financial impact calculation
 
-## 📊 Sample Outputs
+## 🔄 **Service-Opportunity Mapping**
 
-### Top Opportunity Identification
+The system maps HPE product lines to relevant service offerings:
+
+| Product Category | Mapped Services | Priority |
+|------------------|-----------------|----------|
+| **Servers & Compute** | Compute Transformation, Performance Analysis | High (90%) |
+| **Networking** | Network Assessment, WLAN Design | High (75%) |
+| **Cloud Management** | Multi-Cloud Strategy, CloudOps | High (85%) |
+| **Support Services** | Complete Care, Proactive Care | Medium (60%) |
+
+## 📈 **Key Business Metrics**
+
+### **Critical Alerts**
+- 🔴 **27 Products EXPIRED** affecting multiple customers
+- 💸 **Unused Credits** with low utilization rates
+- ⚠️ **Unsupported Products** requiring attention
+
+### **Revenue Opportunities**
+- 💰 **$405K Revenue at Risk** from expired products
+- 🎯 **High-Priority Opportunities** with 80%+ confidence scores
+- 📈 **Cross-sell Potential** across service categories
+
+### **Customer Insights**
+- 👑 **Strategic Customers** (10+ opportunities)
+- 💎 **High Value Customers** (5+ opportunities, no expired products)
+- ⚠️ **At Risk Customers** (expired products requiring immediate action)
+
+## 🚀 **Usage Examples**
+
+### **For Sales Teams**
+```python
+# Identify top opportunities
+top_customers = predictor.get_top_opportunities(features, n=10)
+
+# Generate service recommendations
+service_recs = mapper.get_customer_service_recommendations(opportunities)
+
+# Export for follow-up
+recommendations.to_csv('customer_recommendations.csv')
 ```
-Customer ABC123: High propensity (95% confidence)
-- Action: Critical Product Renewal (30 days to EOL)
-- Cross-sell: Platform expansion opportunity
-- Conversation: "Your critical systems need upgrade planning..."
+
+### **For Business Analysts**
+- Use the **Deep Dive** tab for detailed customer analysis
+- Export data from any tab using the download buttons
+- Filter by customer, product line, or service type
+- Monitor KPIs through the Business Metrics dashboard
+
+## 🛡️ **Data Security**
+
+- **Data Isolation**: All data processing occurs locally
+- **No External APIs**: Self-contained analysis pipeline
+- **Sensitive Data**: Raw data files are git-ignored
+- **Export Control**: CSV exports for approved sharing
+
+## 🔄 **Development Workflow**
+
+### **Adding New Features**
+1. Update data processing in `src/data_processing/`
+2. Modify ML models in `src/models/`
+3. Add dashboard components in `src/main_business.py`
+4. Update documentation in `docs/`
+
+### **Testing**
+```bash
+# Run the dashboard locally
+streamlit run src/main_business.py
+
+# Validate data processing
+python -m src.data_processing.data_loader_v2
+
+# Check ML pipeline
+python -m src.models.opportunity_predictor
 ```
 
-### Business Insights
-```
-Total Customers: 5,678
-High Priority Opportunities: 234 (4.1%)
-Urgent Renewals: 89 customers
-Cross-sell Potential: 456 customers
-Service Expansion: 123 underutilized accounts
-```
+## 🤝 **Contributing**
 
-This system transforms HPE's customer data into actionable intelligence, enabling consultants to deliver timely, relevant solutions that accelerate pipeline conversion and deepen customer relationships.
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/new-analysis`)
+3. **Commit changes** (`git commit -am 'Add new analysis'`)
+4. **Push to branch** (`git push origin feature/new-analysis`)
+5. **Create Pull Request**
+
+## 📝 **Version History**
+
+| Version | Date | Changes |
+|---------|------|---------|
+| **v1.0.0** | 2024-09-03 | Initial release with full dashboard |
+| **v0.9.0** | 2024-09-02 | Service-opportunity mapping added |
+| **v0.8.0** | 2024-09-01 | Customer name display implementation |
+| **v0.7.0** | 2024-08-31 | Business-focused metrics redesign |
+
+## 📞 **Support**
+
+- **Issues**: [GitHub Issues](https://github.com/jjayarajdev/onelead/issues)
+- **Documentation**: [`docs/dashboard_pages/`](docs/dashboard_pages/)
+- **Data Questions**: Review [`data/ER_Diagram.md`](data/ER_Diagram.md)
+
+## 📄 **License**
+
+This project is proprietary software developed for HPE internal use.
+
+---
+
+**🎯 Built for HPE Sales Excellence** | **🤖 Powered by Machine Learning** | **📊 Data-Driven Insights**
