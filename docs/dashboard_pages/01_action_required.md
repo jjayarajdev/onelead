@@ -18,12 +18,14 @@ Three key metrics displayed prominently at the top:
 - **Action Required**: Contact customers for immediate renewal or migration
 - **Urgency**: CRITICAL - affects customer support and compliance
 
-**Example Display**:
+**Actual Data Display**:
 ```
 ⚠️ 27 Products EXPIRED
-Affecting 8 customers
+Affecting Account Territory 56088
 Action: Contact for immediate renewal
 ```
+
+**Reality Check**: The system currently tracks products for a single account territory (56088) with 27 products that have passed their EOL dates, including HP DL360p Gen8 servers from 2015 and various storage components.
 
 #### 💸 **Unused Credits Alert** 
 - **Metric**: Number of service credits purchased but not utilized
@@ -31,12 +33,14 @@ Action: Contact for immediate renewal
 - **Action Required**: Schedule utilization review meetings
 - **Urgency**: HIGH - impacts customer satisfaction and retention
 
-**Example Display**:
+**Simulated Display** (Note: No actual service credits in current data):
 ```
-💸 12,450 Credits Unused  
-Only 65% utilized
-Action: Schedule utilization review
+💸 Service Credits Feature
+Currently showing simulated data
+Action: Integrate actual service credit data source
 ```
+
+**Reality Check**: The current dataset does not contain service credit information. The dashboard simulates this data for demonstration purposes.
 
 #### ⚠️ **Unsupported Products Alert**
 - **Metric**: Products without active support coverage
@@ -50,10 +54,10 @@ A comprehensive table showing customers ranked by urgency:
 
 | Field | Description | Business Value |
 |-------|-------------|----------------|
-| **Customer Name** | Actual customer company name | Easy identification for sales teams |
-| **Products** | Total products owned | Relationship depth indicator |
-| **Expired** | Count of expired/EOL products | Immediate risk assessment |
-| **Opportunities** | Active sales opportunities | Growth potential |
+| **Account Territory** | Sales territory ID (currently 56088) | Account identification |
+| **Products** | Total products owned (currently 63) | Relationship depth indicator |
+| **Expired** | Count of expired/EOL products (currently 27) | Immediate risk assessment |
+| **Opportunities** | Simulated opportunities count | Growth potential (requires integration) |
 | **Priority Level** | 🔴 CRITICAL / 🟡 HIGH / 🟢 MEDIUM | Action prioritization |
 
 **Priority Calculation Logic**:
@@ -77,6 +81,70 @@ Detailed breakdown of products requiring immediate attention:
 - Migration path recommendations
 - Customer communication templates
 
+## 📈 Graph Explanations & Visualizations
+
+### **Critical Alerts Metrics Cards**
+**What You See**: Three prominent metric cards displaying expired products, unused credits, and unsupported products.
+
+**How to Interpret**:
+- **Red Numbers**: Indicate immediate action required (expired products, critical alerts)
+- **Orange/Yellow Numbers**: Suggest proactive intervention needed (unused credits, approaching deadlines)
+- **Trend Arrows**: Show whether metrics are improving (↓) or worsening (↑) over time
+
+**Real Data Context**:
+- **Expired Products**: Shows actual count of 27 products past EOL dates
+- **Customer Impact**: Displays "Account Territory 56088" (actual territory in dataset)
+- **Product Examples**: HP DL360p Gen8 servers, storage components, networking equipment
+
+**Action Triggers**:
+- Any red metric = immediate customer contact required
+- Increasing trend arrows = escalation to management
+- Multiple alerts for same customer = priority customer designation
+
+### **Customer Action Priority Table**
+**What You See**: Sortable table with customers ranked by urgency and business impact.
+
+**How to Interpret**:
+- **Priority Levels**:
+  - 🔴 **CRITICAL**: Expired products requiring immediate renewal (revenue at risk)
+  - 🟡 **HIGH**: High opportunity count with healthy infrastructure
+  - 🟢 **MEDIUM**: Standard engagement level, monitoring required
+
+**Column Meanings**:
+- **Account Territory**: Sales territory ID (currently showing 56088)
+- **Products**: Total product count (63 items in current data)
+- **Expired**: Products past EOL date (27 items requiring action)
+- **Opportunities**: Projected opportunities (simulated data - requires CRM integration)
+- **Days Expired**: How long products have been without support (negative values)
+
+**Usage Strategy**:
+1. **Sort by Priority**: Address red items first, then work down the list
+2. **Filter by Territory**: Focus on your assigned accounts
+3. **Track Actions**: Use checkboxes to mark contacted customers
+4. **Export Data**: Download list for offline calling campaigns
+
+### **Product Lifecycle Timeline Visualization**
+**What You See**: Timeline chart showing product EOL dates and support status over time.
+
+**How to Interpret**:
+- **X-Axis**: Timeline from past to future dates
+- **Y-Axis**: Number of products reaching EOL
+- **Color Coding**:
+  - Red bars: Products already expired (immediate action)
+  - Orange bars: Products expiring within 6 months (proactive planning)
+  - Yellow bars: Products expiring within 1 year (long-term planning)
+  - Green bars: Products with future EOL dates (healthy)
+
+**Real Data Patterns**:
+- **2015-2019**: Cluster of expired HP server and storage products
+- **2099**: Future-dated Aruba networking products (37 units)
+- **Support Gaps**: 30 products currently without active support coverage
+
+**Strategic Value**:
+- **Renewal Planning**: Schedule customer conversations 90 days before EOL
+- **Migration Strategy**: Group related products for solution-based discussions
+- **Inventory Management**: Align replacement part availability with EOL timeline
+
 ## 🔧 Interactive Features
 
 ### **Real-time Filtering**
@@ -98,10 +166,11 @@ Detailed breakdown of products requiring immediate attention:
 
 ## 📊 Business Intelligence Insights
 
-### **Revenue Protection Metrics**
-- **Total Revenue at Risk**: $405,000 from expired products
-- **Average Deal Size**: $50,625 per affected customer
-- **Time-sensitive Opportunities**: 15 customers requiring action within 30 days
+### **Revenue Protection Metrics** (Based on Actual Data)
+- **Products at Risk**: 27 expired products requiring immediate attention
+- **Key Risk Products**: HP DL360p Gen8 servers (5 units), various storage components
+- **EOL Date Range**: Products expired between 2009-2019, requiring migration/replacement
+- **Support Coverage Gap**: 30 products with expired support coverage
 
 ### **Customer Health Indicators**
 - **At-Risk Customers**: 8 customers with expired products

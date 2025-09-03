@@ -12,36 +12,39 @@ The Business Metrics page serves as the **executive command center** for HPE One
 
 Four critical business performance indicators:
 
-#### 📈 **Pipeline Health Score**
-- **Metric**: Overall pipeline quality and velocity
-- **Components**: Coverage ratio, conversion rates, stage progression
-- **Target**: >3.0x coverage ratio for predictable revenue
-- **Trend Analysis**: Month-over-month pipeline evolution
+#### 📈 **Install Base Health Score**
+- **Metric**: Overall product portfolio health and support coverage
+- **Components**: Active support ratio, EOL status, product age distribution
+- **Target**: >80% products under active support
+- **Trend Analysis**: Support coverage and renewal patterns
 
-**Example Display**:
+**Actual Data Display**:
 ```
-📈 Pipeline Health: 87/100
-3.2x coverage ratio | 73% win rate
-Pipeline growing 15% month-over-month
+📈 Install Base Health: 52/100
+33 products under active warranty
+30 products unsupported | 27 products expired
+Critical: Server infrastructure renewal required
 ```
 
-#### 💰 **Revenue Performance**
-- **Metric**: Actual vs. target revenue achievement
-- **Components**: Closed revenue, pipeline value, forecast accuracy
-- **Achievement**: 94% of quarterly target achieved
-- **Acceleration**: 12% ahead of last quarter pace
+**Reality Check**: Current data shows 52% of products (33/63) have active warranty support, with significant infrastructure requiring immediate attention.
 
-#### 👥 **Customer Engagement**
-- **Metric**: Customer activity and relationship strength
-- **Components**: Meeting frequency, opportunity progression, health scores
-- **Health Distribution**: 75% healthy, 15% at-risk, 10% critical
-- **Engagement Trend**: 8% improvement in customer activity
+#### 💰 **Revenue Risk Exposure**
+- **Metric**: Financial impact of expired and at-risk products
+- **Components**: Expired product values, replacement costs, support gaps
+- **Current Risk**: Estimated $405K from 27 expired products
+- **Action Required**: Server refresh and WLAN modernization programs
 
-#### 🎯 **Opportunity Conversion**
-- **Metric**: Lead-to-close conversion efficiency
-- **Components**: Stage conversion rates, sales cycle time
-- **Current Performance**: 31% overall conversion rate
-- **Cycle Optimization**: 15% reduction in average sales cycle
+#### 👥 **Territory Coverage**
+- **Metric**: Product and service coverage across account territory
+- **Components**: Product diversity, technology areas, support coverage
+- **Current Coverage**: Territory 56088 with 63 products across 4 business areas
+- **Diversity**: WLAN (37), Storage (17), Servers (7), Enclosures (2)
+
+#### 🎯 **Technology Lifecycle Management**
+- **Metric**: Product age and technology refresh requirements
+- **Components**: EOL dates, support status, technology evolution
+- **Current Status**: 43% products need immediate attention (expired/at-risk)
+- **Technology Mix**: Modern WLAN (59%), Legacy servers/storage (41%)
 
 ### 2. **Performance Trending Analysis**
 
@@ -153,6 +156,136 @@ Line charts showing:
 - **Sales Process Adherence**: CRM adoption and process compliance
 - **Forecast Accuracy**: Prediction vs. actual performance
 - **Deal Cycle Efficiency**: Time spent per opportunity stage
+
+## 📈 Graph Explanations & Visualizations
+
+### **Support Coverage Analysis (Bar Chart)**
+**What You See**: Vertical bar chart comparing supported vs. unsupported products.
+
+**How to Interpret**:
+- **X-Axis**: Two categories - "Supported" and "Unsupported"
+- **Y-Axis**: Number of products in each category
+- **Bar Colors**: 
+  - Green (#4CAF50): Products with active support coverage
+  - Red (#F44336): Products without active support
+- **Text Labels**: Exact product counts displayed on each bar
+
+**Actual Data Analysis**:
+- **Supported**: 33 products with active warranty coverage
+  - Primarily newer Aruba WLAN products (AP-325, AP-335)
+  - Some HPE server components with current warranties
+- **Unsupported**: 30 products without active coverage
+  - 20 products "Warranty Expired - Uncovered Box"
+  - 6 products "Expired Flex Support"
+  - 4 products "Expired Fixed Support"
+
+**Business Intelligence**:
+- **Support Gap**: 48% of products lack active support coverage
+- **Revenue Opportunity**: Estimated $150K potential from support renewals ($5K avg per product)
+- **Risk Assessment**: Critical business systems potentially unsupported
+- **Action Priority**: Focus on server and storage infrastructure first
+
+**Strategic Usage**:
+- **Customer Conversation**: Present support gap as business risk
+- **Solution Packaging**: Bundle support with hardware refreshes
+- **Competitive Defense**: Proactive support prevents competitive entry
+
+### **Service Credit Performance (Horizontal Bar Chart)**
+**What You See**: Horizontal bar chart showing credit utilization by practice area.
+
+**How to Interpret**:
+- **Y-Axis**: Practice names (service categories)
+- **X-Axis**: Utilization percentage (0-100%)
+- **Bar Colors**: Gradient from red (low utilization) to green (high utilization)
+- **Text Labels**: Percentage values displayed on bars
+
+**Note on Current Data**: Service credit data is not available in current dataset - dashboard shows simulated data.
+
+**Typical Analysis When Data Available**:
+- **High Performers**: Practices with >75% utilization (dark green)
+- **At Risk**: Practices with <50% utilization (red/orange)
+- **Opportunity**: Focus on underutilized practices for customer success
+
+### **Product End-of-Life Timeline (Scatter Plot/Timeline)**
+**What You See**: Timeline visualization showing EOL dates for products in install base.
+
+**How to Interpret**:
+- **X-Axis**: Timeline from past to future (2009 to 2099)
+- **Y-Axis**: Product categories or count
+- **Point Colors**: 
+  - Red: Already expired (immediate action required)
+  - Orange: Expiring within 1 year (planning required)  
+  - Yellow: Expiring within 2 years (long-term planning)
+  - Green: Future dates (healthy)
+
+**Real Data Insights**:
+- **Historical Cluster (2009-2019)**: 27 expired products requiring immediate attention
+  - HP DL360p Gen8 servers (2015-07-01) - 5 units
+  - Storage components (2015-10-01) - 3 units
+  - Various HP server accessories from 2014-2019
+- **Future Cluster (2099-12-31)**: 36 Aruba WLAN products
+  - Modern networking infrastructure with extended lifecycle
+  - AP-325 access points (30 units) - core WLAN deployment
+  - AP-335 and other newer Aruba products
+
+**Strategic Planning Value**:
+- **Immediate Actions**: Address 2009-2019 expired products first
+- **Budget Planning**: Plan server refresh for expired HP infrastructure  
+- **Technology Roadmap**: WLAN infrastructure is modern and future-ready
+- **Customer Communications**: Proactive outreach for expired products
+
+### **Business Area Distribution (Pie Chart)**
+**What You See**: Donut pie chart showing products by business area/technology category.
+
+**How to Interpret**:
+- **Segments**: Each slice represents a business area
+- **Size**: Proportional to number of products in that area
+- **Colors**: Distinct colors for each business area
+- **Labels**: Product counts and percentages
+
+**Actual Data Breakdown**:
+- **WLAN HW (59%)**: 37 products - largest segment
+  - Aruba wireless access points and networking
+  - Modern technology stack (2099 EOL dates)
+- **Server Storage & Inf (27%)**: 17 products
+  - Memory modules, storage drives, server components
+  - Mix of current and expired products
+- **x86 Premium and Scale-up Rack (11%)**: 7 products  
+  - HP DL360p Gen8 servers - critical infrastructure
+  - Expired (2015) requiring immediate replacement
+- **C-Class Units & Enclosures (3%)**: 2 products
+  - Blade server enclosure components
+  - Supporting infrastructure
+
+**Business Strategy Implications**:
+- **Investment Focus**: WLAN infrastructure is well-positioned for future
+- **Immediate Priority**: Server infrastructure refresh for 11% of portfolio
+- **Solution Selling**: Bundle server, storage, and networking for complete solutions
+- **Customer Success**: Leverage strong WLAN deployment for expanded services
+
+### **Support Status Health Matrix (Stacked Chart)**
+**What You See**: Stacked visualization showing support status distribution across product categories.
+
+**How to Interpret**:
+- **Categories**: Different product lines or business areas
+- **Stacked Segments**: Support status types within each category
+- **Colors**:
+  - Green: Active Warranty (healthy)
+  - Orange: Expired Flex Support (needs renewal)
+  - Red: Warranty Expired - Uncovered (critical)
+  - Gray: No support data
+
+**Real Data Analysis**:
+- **Active Warranty (33 products)**: Primarily WLAN infrastructure
+- **Warranty Expired - Uncovered (20 products)**: Mixed categories needing immediate attention
+- **Expired Flex Support (6 products)**: Previously had enhanced support
+- **Expired Fixed Support (4 products)**: Basic support expired
+
+**Health Assessment Framework**:
+- **Critical Risk**: Red segments require immediate customer contact
+- **Moderate Risk**: Orange segments need proactive renewal discussions
+- **Healthy**: Green segments provide competitive protection
+- **Opportunity**: Convert basic to premium support packages
 
 ## 🔧 Interactive Features
 

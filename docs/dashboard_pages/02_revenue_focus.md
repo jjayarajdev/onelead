@@ -18,12 +18,15 @@ Four critical financial metrics displayed at the top:
 - **Calculation**: Sum of contract values for expired products
 - **Action Focus**: Customer retention and renewal acceleration
 
-**Example Display**:
+**Actual Data Display**:
 ```
-💰 $405,000 Revenue at Risk
-From 27 expired products across 8 customers
-Action: Prioritize renewal conversations
+💰 Revenue at Risk from Expired Products
+From 27 expired products in Territory 56088
+Key Products: HP DL360p Gen8 servers, storage components
+Action: Prioritize migration/renewal conversations
 ```
+
+**Reality Check**: Revenue calculations are estimated based on product replacement costs. Actual data shows significant HP server infrastructure (5 units) and storage components requiring immediate attention.
 
 #### 🎯 **High-Value Opportunities**
 - **Metric**: Count of opportunities with >80% prediction confidence
@@ -43,22 +46,22 @@ Action: Prioritize renewal conversations
 - **Components**: Closed revenue, pipeline value, win rates
 - **Action Focus**: Performance optimization and resource allocation
 
-### 2. **Customer Revenue Ranking**
+### 2. **Product Portfolio Value Analysis**
 
-Horizontal bar chart showing top customers by revenue impact:
+Horizontal bar chart showing product categories by business impact:
 
-| Ranking Factor | Description | Business Value |
-|----------------|-------------|----------------|
-| **Current Revenue** | Active contract values | Account prioritization |
-| **Opportunity Pipeline** | Potential future revenue | Growth forecasting |
-| **Historical Performance** | Past revenue contribution | Relationship value |
-| **Risk Assessment** | Revenue at risk from churn | Protection priorities |
+| Ranking Factor | Description | Actual Data Reality |
+|----------------|-------------|--------------------|
+| **WLAN Infrastructure** | Aruba networking products (37 units) | Largest category - AP-325 dominant (30 units) |
+| **Server Infrastructure** | HP server products (7 units) | Critical business systems requiring renewal |
+| **Storage Components** | Storage and memory products (17 units) | Supporting infrastructure for servers |
+| **Risk Assessment** | Products at EOL/EOS risk | 27 products requiring immediate attention |
 
 **Visual Features**:
-- Color-coded bars (Green: Growth, Yellow: Stable, Red: At Risk)
-- Customer names displayed for easy identification
-- Clickable bars for drill-down analysis
-- Real-time data updates
+- Color-coded bars (Green: Future EOL dates, Yellow: Approaching EOL, Red: Expired)
+- Product categories displayed for business classification
+- Clickable bars for drill-down to specific products
+- Real-time data updates from install base
 
 ### 3. **Revenue Deep Dive Analysis**
 
@@ -125,6 +128,110 @@ Visual grid showing opportunities plotted by:
 - Standardized solution offerings
 - Digital engagement channels
 - Scalable support models
+
+## 📈 Graph Explanations & Visualizations
+
+### **Top Customer Opportunity Concentration (Horizontal Bar Chart)**
+**What You See**: Horizontal bar chart showing top customers by opportunity count.
+
+**How to Interpret**:
+- **X-Axis**: Number of opportunities (actual or projected)
+- **Y-Axis**: Customer names (mapped from Account Territory IDs)
+- **Bar Colors**: 
+  - Dark green (#01A982): Highest opportunity customer (top priority)
+  - Light green (#4ECDC4): Secondary opportunity customers
+- **Text Labels**: Exact opportunity count displayed on each bar
+
+**Real Data Context**:
+- Currently shows **simulated opportunity data** since actual CRM opportunities are not in dataset
+- **Account Territory 56088** would appear as single customer with projected opportunities
+- **Color highlighting** helps identify key accounts requiring dedicated resources
+
+**Strategic Usage**:
+- **Resource Allocation**: Assign senior sales resources to dark green (highest) customers
+- **Account Planning**: Schedule quarterly business reviews with top 3 customers
+- **Pipeline Focus**: Prioritize deal progression for customers with most opportunities
+
+### **Hot Product Lines (Pie Chart)**
+**What You See**: Donut pie chart showing opportunity distribution by product category.
+
+**How to Interpret**:
+- **Segments**: Each slice represents a product line or business area
+- **Size**: Larger slices = more opportunities in that product category
+- **Colors**: Each product line has distinct color coding
+- **Center Hole**: Makes chart easier to read and allows for central metrics display
+
+**Real Data Analysis** (Based on actual install base):
+- **WLAN HW (59%)**: Largest segment - 37 Aruba networking products
+  - Dominated by AP-325 wireless access points (30 units)
+  - Growth opportunity: WiFi 6 upgrade path
+- **Server Storage & Inf (27%)**: 17 storage and server components
+  - Memory modules, storage drives, server accessories
+  - Renewal opportunity: Infrastructure modernization
+- **x86 Premium Servers (11%)**: 7 high-end server products
+  - HP DL360p Gen8 servers requiring replacement/upgrade
+  - Migration opportunity: Gen10+ server refresh
+- **C-Class Infrastructure (3%)**: 2 blade enclosure components
+  - Supporting infrastructure for blade servers
+
+**Business Intelligence**:
+- **Market Focus**: Concentrate on WLAN infrastructure refresh (largest segment)
+- **Solution Selling**: Bundle server, storage, and networking for complete solutions
+- **Technology Refresh**: Target expired 2015-era servers for Gen10+ migration
+
+### **Customer Engagement Analysis (Data Table)**
+**What You See**: Interactive table with customer engagement scoring and classification.
+
+**How to Interpret**:
+- **Status Column**: Visual indicators for customer classification
+  - 🌟 **KEY ACCOUNT**: 10+ opportunities (strategic priority)
+  - 💰 **HIGH VALUE**: 5+ opportunities (growth focus)
+  - ⚠️ **AT RISK**: Expired products (retention priority)
+  - 📞 **NEEDS ENGAGEMENT**: Low activity (reactivation required)
+
+- **Engagement Score**: Calculated metric combining:
+  - Opportunities × 2 (weighted for growth potential)
+  - Installed Products × 0.5 (relationship depth)
+  - Expired Products × -1.5 (risk penalty)
+
+**Column Definitions**:
+- **Customer**: Account Territory ID (56088 in current data)
+- **Products**: Total installed products count (63 in current data)  
+- **Opportunities**: Active opportunities (simulated - requires CRM integration)
+- **Expired**: Products past EOL requiring immediate action (27 in current data)
+- **Score**: Composite engagement health score
+
+**Action Framework**:
+- **🌟 KEY ACCOUNT**: Assign dedicated account manager, quarterly executive reviews
+- **💰 HIGH VALUE**: Regular engagement cadence, upsell focus
+- **⚠️ AT RISK**: Immediate intervention, renewal acceleration
+- **📞 NEEDS ENGAGEMENT**: Reactivation campaign, value demonstration
+
+**Sorting & Filtering**:
+- **Default Sort**: By engagement score (descending) - highest priority first
+- **Status Filter**: Focus on specific customer classifications
+- **Territory Filter**: Filter by sales territory or region
+- **Export Function**: Download customer action plans
+
+### **Revenue Trend Analysis (Line Charts)**
+**What You See**: Time-series charts showing revenue performance trends over time.
+
+**How to Interpret**:
+- **X-Axis**: Time periods (monthly, quarterly, or annual)
+- **Y-Axis**: Revenue values or percentages
+- **Line Colors**: Different metrics or customer segments
+- **Trend Indicators**: Upward slopes (growth), downward slopes (decline)
+
+**Key Metrics Tracked**:
+- **Revenue at Risk**: Value of expired products requiring renewal
+- **Opportunity Pipeline**: Projected future revenue from active deals
+- **Product Category Performance**: Revenue trends by technology area
+- **Customer Lifecycle Value**: Long-term customer contribution patterns
+
+**Actual Data Insights**:
+- **Infrastructure Refresh Cycle**: Server products from 2015 need immediate replacement
+- **Technology Evolution**: Aruba WLAN products have future EOL dates (2099) indicating newer technology
+- **Support Gap Impact**: 30 products without support represent revenue risk
 
 ## 🔧 Interactive Features
 

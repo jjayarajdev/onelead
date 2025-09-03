@@ -18,12 +18,14 @@ Four key health indicators displayed prominently:
 - **Calculation**: Weighted average of multiple health factors
 - **Color Coding**: Green (80-100), Yellow (60-79), Red (<60)
 
-**Example Display**:
+**Actual Data Display**:
 ```
-💚 Customer Health: 87/100
-8 Healthy | 2 At Risk | 0 Critical
-Overall portfolio trending positive
+💚 Territory 56088 Health: 52/100
+33 Products with Active Warranty | 30 Unsupported
+27 Products Expired - Immediate Action Required
 ```
+
+**Reality Check**: The current data represents a single account territory (56088) rather than multiple customers. Health score is calculated based on support coverage and product lifecycle status.
 
 #### 📈 **Engagement Trends**
 - **Metric**: Customer interaction frequency and quality
@@ -43,14 +45,14 @@ Overall portfolio trending positive
 - **Segmentation**: Strategic, High Value, Standard tiers
 - **Investment Guidance**: Resource allocation recommendations
 
-### 2. **Customer Segmentation Matrix**
+### 2. **Product Portfolio Segmentation Matrix**
 
-Advanced segmentation based on multiple dimensions:
+Advanced categorization based on multiple dimensions:
 
-#### **RFM Analysis Integration**
-- **Recency**: How recently customer engaged
-- **Frequency**: How often customer interacts
-- **Monetary**: Revenue contribution level
+#### **Product Lifecycle Analysis**
+- **Recency**: How recently products were purchased/refreshed
+- **Technology**: Current vs. legacy technology status
+- **Support**: Active warranty vs. expired support status
 
 #### **Customer Lifecycle Stage**
 | Stage | Characteristics | Action Focus |
@@ -102,11 +104,11 @@ Advanced segmentation based on multiple dimensions:
 
 Comprehensive analysis interface for selected customers:
 
-#### **Customer Selection**
-- Searchable dropdown with customer names
-- Filter by health score, segment, or region
-- Recent activity indicators
-- Risk level visual indicators
+#### **Product Portfolio Analysis**
+- Analysis of 63 products across 4 business areas
+- Filter by business area (WLAN, Server, Storage, Enclosures)
+- Product lifecycle and support status indicators
+- EOL risk level visual indicators
 
 #### **Customer Health Dashboard**
 For each selected customer:
@@ -190,6 +192,140 @@ Benchmarking capabilities:
 - Seasonal patterns and cycles
 - Event correlation analysis
 - Recovery success patterns
+
+## 📈 Graph Explanations & Visualizations
+
+### **Product Status Pie Chart (Donut Chart)**
+**What You See**: Donut pie chart showing product distribution by EOL status.
+
+**How to Interpret**:
+- **Segments**: Each slice represents products in different lifecycle stages
+- **Colors**:
+  - Red: Expired products (immediate action required)
+  - Orange: At Risk products (<1 year to EOL)
+  - Green: Healthy products (>1 year to EOL or future-dated)
+- **Center Metric**: Total product count (63 in current data)
+- **Labels**: Product counts and percentages for each segment
+
+**Real Data Analysis**:
+- **Expired (Red, 27 products, 43%)**: Products past EOL requiring immediate attention
+  - HP DL360p Gen8 servers from 2015
+  - Various storage and memory components
+  - Legacy server accessories
+- **At Risk (Orange, varies)**: Products expiring within 12 months
+  - Calculated based on current date vs. EOL dates
+- **Healthy (Green, 36 products, 57%)**: Future-dated products
+  - Aruba WLAN infrastructure (AP-325, AP-335)
+  - Modern networking components with 2099 EOL dates
+
+**Action Framework**:
+- **Red Alert**: Immediate customer contact for renewal/replacement
+- **Orange Caution**: Schedule planning discussions for upcoming refreshes
+- **Green Good**: Leverage healthy products for competitive positioning
+
+### **Support Status Overview (Horizontal Bar Chart)**
+**What You See**: Horizontal bars showing support status distribution across the product portfolio.
+
+**How to Interpret**:
+- **Y-Axis**: Support status categories
+- **X-Axis**: Number of products in each status
+- **Bar Colors**: Traffic light system (Green=Good, Yellow=Caution, Red=Critical)
+- **Text Labels**: Exact product counts on each bar
+
+**Actual Support Status Breakdown**:
+- **Active Warranty (33 products)**: Products with current support coverage
+  - Primarily Aruba WLAN products
+  - Some newer HPE server components
+- **Warranty Expired - Uncovered Box (20 products)**: No active support
+  - Mixed product categories requiring immediate attention
+- **Expired Flex Support (6 products)**: Previously enhanced support
+- **Expired Fixed Support (4 products)**: Basic support expired
+
+**Business Risk Assessment**:
+- **High Risk**: 30 products (48%) without active support coverage
+- **Revenue Opportunity**: $150K potential from support renewals
+- **Customer Impact**: Critical business systems potentially at risk
+- **Competitive Vulnerability**: Unsupported products invite competitive displacement
+
+### **Product Category Health Matrix (Stacked Bar Chart)**
+**What You See**: Stacked bars showing health status within each business area.
+
+**How to Interpret**:
+- **X-Axis**: Business areas (WLAN HW, Server Storage & Inf, etc.)
+- **Y-Axis**: Number of products in each area
+- **Stacked Colors**: Health status within each category
+  - Green stack: Healthy products
+  - Yellow stack: At-risk products
+  - Red stack: Expired products
+
+**Real Data Business Area Analysis**:
+- **WLAN HW (37 products, 59%)**:
+  - Predominantly healthy (Aruba products with 2099 EOL)
+  - Strong competitive position
+  - Opportunity: WiFi 6/6E upgrades
+- **Server Storage & Inf (17 products, 27%)**:
+  - Mixed health status
+  - Memory modules, storage drives, accessories
+  - Opportunity: Infrastructure modernization
+- **x86 Premium and Scale-up Rack (7 products, 11%)**:
+  - High risk: HP DL360p Gen8 servers expired (2015)
+  - Critical infrastructure requiring immediate replacement
+  - Opportunity: Gen10+ server refresh
+- **C-Class Units & Enclosures (2 products, 3%)**:
+  - Blade server components
+  - Supporting infrastructure
+
+**Strategic Planning Insights**:
+- **Strength**: WLAN infrastructure is modern and future-ready
+- **Priority**: Server infrastructure requires immediate investment
+- **Opportunity**: Bundle server, storage, and networking for complete solution
+
+### **Timeline Visualization (Gantt Chart Style)**
+**What You See**: Timeline chart showing product EOL dates plotted over time.
+
+**How to Interpret**:
+- **X-Axis**: Timeline from 2009 to 2099
+- **Y-Axis**: Product categories or individual products
+- **Color Bands**: 
+  - Past dates (red): Expired, requiring immediate action
+  - Future dates (green): Healthy, long-term planning
+- **Clustering**: Groups of products with similar EOL dates
+
+**Historical and Future Patterns**:
+- **2009-2019 Cluster**: 27 products requiring immediate replacement
+  - Technology refresh cycle completed
+  - Customer business risk from unsupported systems
+- **2099 Cluster**: 36 Aruba products with extended lifecycle
+  - Modern technology investment
+  - Long-term customer value protected
+
+**Planning Framework**:
+- **Immediate (2009-2019)**: Customer urgency conversations
+- **Short-term (1-2 years)**: Proactive refresh planning  
+- **Long-term (2099)**: Technology evolution discussions
+
+### **Engagement Score Calculation (Metrics Dashboard)**
+**What You See**: Composite score calculation with component breakdown.
+
+**How to Interpret**:
+- **Overall Score**: Single health metric (0-100 scale)
+- **Component Scores**: Individual factors contributing to overall health
+- **Weighting**: Different factors have different importance
+- **Trend Arrows**: Score improvement or decline indicators
+
+**Current Calculation (Territory 56088)**:
+- **Base Score**: Starting from 100
+- **Support Coverage**: -25 points (48% unsupported)
+- **EOL Risk**: -20 points (43% expired/at-risk)
+- **Technology Mix**: +10 points (modern WLAN infrastructure)
+- **Product Diversity**: +5 points (4 business areas represented)
+- **Final Score**: 52/100 (Requires Attention)
+
+**Score Interpretation Guide**:
+- **80-100**: Excellent health, expansion opportunities
+- **60-79**: Good health, monitor for changes
+- **40-59**: At risk, proactive intervention needed
+- **0-39**: Critical, immediate escalation required
 
 ## 🔧 Interactive Features
 
