@@ -145,12 +145,14 @@ data/processed/*.pkl
 data/processed/*.json
 data/processed/*.parquet
 
-# Model artifacts
+# Model artifacts (but keep Python source files)
 src/models/*.pkl
 src/models/*.joblib
 src/models/*.h5
 src/models/*.pt
 src/models/*.pth
+# Allow Python files in models directory
+!src/models/*.py
 
 # Analysis outputs
 data/outputs/analysis/*.xlsx
@@ -268,7 +270,7 @@ node_modules/
 *.pkl
 
 # Model files
-models/
+# models/  # Commented out - we need src/models Python files
 checkpoints/
 weights/
 
