@@ -16,51 +16,88 @@ import subprocess
 
 # Auto-setup database if not exists
 def setup_database_if_needed():
-    """Check if database exists, create if not"""
+    """Check if database exists and has required tables"""
     db_path = 'data/onelead.db'
 
+    # Check if database exists and is valid
+    needs_setup = False
+
     if not os.path.exists(db_path):
-        st.info("🔄 Setting up database for the first time... This will take about 30 seconds.")
+        needs_setup = True
+    else:
+        # Check if required tables exist
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='dim_ls_sku_product'")
+            if cursor.fetchone() is None:
+                needs_setup = True
+            conn.close()
+        except:
+            needs_setup = True
+
+    if needs_setup:
+        st.warning("🔄 Setting up database for the first time... This will take about 30 seconds.")
+
+        # Create data directory if it doesn't exist
+        os.makedirs('data', exist_ok=True)
 
         try:
             # Run database creation script
-            with st.spinner("Creating database schema..."):
+            with st.spinner("📊 Creating database schema and loading customer data..."):
                 result = subprocess.run(
                     [sys.executable, 'src/database/create_sqlite_database.py'],
                     capture_output=True,
                     text=True,
-                    timeout=120
+                    timeout=180,
+                    cwd=os.getcwd()
                 )
 
                 if result.returncode != 0:
-                    st.error(f"Database creation failed: {result.stderr}")
-                    return False
+                    st.error("❌ Database creation failed!")
+                    with st.expander("Show error details"):
+                        st.code(result.stderr)
+                    st.stop()
+                else:
+                    st.success("✅ Database created successfully")
 
             # Load LS_SKU data
-            with st.spinner("Loading service catalog..."):
+            with st.spinner("📦 Loading service catalog (LS_SKU data)..."):
                 result = subprocess.run(
                     [sys.executable, 'src/database/ls_sku_data_loader.py'],
                     capture_output=True,
                     text=True,
-                    timeout=120
+                    timeout=180,
+                    cwd=os.getcwd()
                 )
 
                 if result.returncode != 0:
-                    st.error(f"LS_SKU loading failed: {result.stderr}")
-                    return False
+                    st.error("❌ LS_SKU loading failed!")
+                    with st.expander("Show error details"):
+                        st.code(result.stderr)
+                    st.stop()
+                else:
+                    st.success("✅ Service catalog loaded successfully")
 
-            st.success("✅ Database setup complete!")
+            st.success("🎉 Database setup complete! Reloading app...")
+            st.balloons()
+
+            # Wait a moment then rerun
+            import time
+            time.sleep(2)
             st.rerun()
 
+        except subprocess.TimeoutExpired:
+            st.error("❌ Database setup timed out. Please try again.")
+            st.stop()
         except Exception as e:
             st.error(f"❌ Error setting up database: {str(e)}")
-            return False
+            st.exception(e)
+            st.stop()
 
     return True
 
-# Check database before importing data loaders
-if not setup_database_if_needed():
-    st.stop()
+# Setup database on first run
+setup_database_if_needed()
 
 # Import data loaders
 from data_processing.sqlite_loader import OneleadSQLiteLoader
