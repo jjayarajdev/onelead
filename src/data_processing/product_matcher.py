@@ -353,22 +353,49 @@ class ProductMatcher:
         return results
 
 
-# Main execution for testing
+# Main execution - run product matching and save to database
 if __name__ == "__main__":
     import pandas as pd
+    import sqlite3
+    import os
+    from pathlib import Path
 
-    # Load Install Base data
-    install_base_file = '/Users/jjayaraj/workspaces/HPE/onelead_system/data/DataExportAug29th.xlsx'
-    df_install = pd.read_excel(install_base_file, sheet_name='Install Base')
+    # Use relative paths from current working directory
+    current_dir = Path(os.getcwd())
+    data_dir = current_dir / 'data'
+    db_file = str(data_dir / 'onelead.db')
 
-    # LS_SKU products (from parser)
-    ls_sku_products = [
-        '3PAR', 'Primera', 'Alletra', 'Alletra MP', 'Nimble', 'MSA', 'StoreOnce', 'MSL',
-        'Servers', 'Synergy', 'C7000',
-        'Networking', 'SAN',
-        'Linux (All Flavour)', 'Cluster (SG, SUSE, RHEL)', 'SAP HANA', 'Converged Systems',
-        'SimpliVity', 'Nimble dHCI', 'Nutanix', 'Azure HCI'
-    ]
+    print("=== HPE OneLead Product Matching ===\n")
+    print(f"Database: {db_file}")
+
+    # Connect to database
+    if not os.path.exists(db_file):
+        print(f"❌ Database not found: {db_file}")
+        exit(1)
+
+    conn = sqlite3.connect(db_file)
+
+    # Load Install Base products from database
+    print("\n📊 Loading Install Base products from database...")
+    df_install = pd.read_sql_query("""
+        SELECT
+            p.product_key,
+            p.product_description as install_base_product,
+            p.product_platform as install_base_platform,
+            p.product_portfolio as install_base_category
+        FROM dim_product p
+    """, conn)
+    print(f"   Found {len(df_install)} products in Install Base")
+
+    # Load LS_SKU products from database
+    print("📦 Loading LS_SKU products from database...")
+    df_ls_sku = pd.read_sql_query("""
+        SELECT DISTINCT product_name
+        FROM dim_ls_sku_product
+        ORDER BY product_name
+    """, conn)
+    ls_sku_products = df_ls_sku['product_name'].tolist()
+    print(f"   Found {len(ls_sku_products)} LS_SKU products")
 
     # Initialize matcher
     matcher = ProductMatcher()
@@ -377,42 +404,52 @@ if __name__ == "__main__":
     install_products = df_install.to_dict('records')
 
     # Perform batch matching
-    print("=== Product Matching Analysis ===\n")
+    print("\n🔗 Running product matching algorithm...")
     results = matcher.batch_match(install_products, ls_sku_products, min_confidence=60)
 
-    # Convert to DataFrame for analysis
+    # Convert to DataFrame
     df_results = pd.DataFrame(results)
 
     # Summary statistics
-    print(f"Total Install Base Products: {len(results)}")
-    print(f"Matched Products: {df_results['matched_ls_sku_product'].notna().sum()}")
-    print(f"Unmatched Products: {df_results['matched_ls_sku_product'].isna().sum()}")
-    print(f"\nMatch Methods:")
-    print(df_results['match_method'].value_counts())
-    print(f"\nConfidence Levels:")
-    print(df_results['confidence_level'].value_counts())
+    print(f"\n✅ Matching complete!")
+    print(f"   Total Install Base Products: {len(results)}")
+    print(f"   Matched Products: {df_results['matched_ls_sku_product'].notna().sum()}")
+    print(f"   Unmatched Products: {df_results['matched_ls_sku_product'].isna().sum()}")
 
-    # Show matched products
-    print("\n=== Matched Products (High Confidence) ===")
-    high_confidence = df_results[df_results['confidence_score'] >= 85]
-    print(high_confidence[[
-        'install_base_product',
-        'matched_ls_sku_product',
-        'confidence_score',
-        'match_method'
-    ]].to_string(index=False))
+    # Save matched products to database
+    print("\n💾 Saving matches to database...")
 
-    # Show unmatched products
-    print("\n=== Unmatched Products ===")
-    unmatched = df_results[df_results['matched_ls_sku_product'].isna()]
-    print(unmatched[[
-        'install_base_product',
-        'install_base_platform',
-        'matched_category',
-        'confidence_score'
-    ]].head(10).to_string(index=False))
+    # Clear existing matches
+    conn.execute("DELETE FROM map_install_base_to_ls_sku")
 
-    # Export results
-    output_file = '/Users/jjayaraj/workspaces/HPE/onelead_system/data/outputs/product_matching_results.csv'
-    df_results.to_csv(output_file, index=False)
-    print(f"\n✓ Exported matching results to: {output_file}")
+    # Insert new matches
+    inserted = 0
+    for _, row in df_results.iterrows():
+        if pd.notna(row['matched_ls_sku_product']):
+            # Get LS_SKU product key
+            ls_product_key = pd.read_sql_query(f"""
+                SELECT ls_product_key
+                FROM dim_ls_sku_product
+                WHERE product_name = '{row['matched_ls_sku_product']}'
+                LIMIT 1
+            """, conn)
+
+            if not ls_product_key.empty:
+                conn.execute("""
+                    INSERT OR REPLACE INTO map_install_base_to_ls_sku
+                    (product_key, ls_product_key, match_method, confidence_score, confidence_level)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    row['product_key'],
+                    int(ls_product_key.iloc[0]['ls_product_key']),
+                    row['match_method'],
+                    int(row['confidence_score']),
+                    row['confidence_level']
+                ))
+                inserted += 1
+
+    conn.commit()
+    print(f"   ✅ Inserted {inserted} product matches into database")
+
+    conn.close()
+    print("\n🎉 Product matching complete!")
