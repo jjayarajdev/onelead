@@ -25,12 +25,22 @@ def setup_database_if_needed():
     if not os.path.exists(db_path):
         needs_setup = True
     else:
-        # Check if required tables exist
+        # Check if required tables exist and have data
         try:
             conn = sqlite3.connect(db_path)
+
+            # Check if LS_SKU table exists
             cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='dim_ls_sku_product'")
             if cursor.fetchone() is None:
                 needs_setup = True
+
+            # Check if product matching has been run (critical for recommendations)
+            if not needs_setup:
+                cursor = conn.execute("SELECT COUNT(*) FROM map_install_base_to_ls_sku")
+                count = cursor.fetchone()[0]
+                if count == 0:
+                    needs_setup = True
+
             conn.close()
         except:
             needs_setup = True
@@ -77,6 +87,24 @@ def setup_database_if_needed():
                     st.stop()
                 else:
                     st.success("✅ Service catalog loaded successfully")
+
+            # Run product matching
+            with st.spinner("🔗 Matching products to services (this may take a minute)..."):
+                result = subprocess.run(
+                    [sys.executable, 'src/data_processing/product_matcher.py'],
+                    capture_output=True,
+                    text=True,
+                    timeout=300,
+                    cwd=os.getcwd()
+                )
+
+                if result.returncode != 0:
+                    st.error("❌ Product matching failed!")
+                    with st.expander("Show error details"):
+                        st.code(result.stderr)
+                    st.stop()
+                else:
+                    st.success("✅ Product matching completed successfully")
 
             st.success("🎉 Database setup complete! Reloading app...")
             st.balloons()
