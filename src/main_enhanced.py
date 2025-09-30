@@ -486,12 +486,12 @@ def show_step_5_dashboard():
         urgency_options = st.multiselect(
             "Urgency Level",
             options=['Critical', 'High', 'Medium', 'Low'],
-            default=['Critical', 'High']
+            default=['Critical', 'High', 'Medium', 'Low']
         )
 
     with col3:
         # Confidence filter
-        min_confidence = st.slider("Minimum Confidence", 50, 100, 60, 5)
+        min_confidence = st.slider("Minimum Confidence", 0, 100, 50, 5)
 
     # Generate filtered recommendations
     customer_id = None if selected_customer == 'All Customers' else selected_customer
