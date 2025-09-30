@@ -326,6 +326,7 @@ class ProductMatcher:
             )
 
             result = {
+                'product_key': ib_product.get('product_key'),  # Pass through product_key if present
                 'install_base_product': product_name,
                 'install_base_platform': ib_product.get('Product_Platform_Description_Name', ''),
                 'install_base_business_area': ib_product.get('Business_Area_Description_Name', ''),
@@ -407,16 +408,8 @@ if __name__ == "__main__":
     print("\n🔗 Running product matching algorithm...")
     results = matcher.batch_match(install_products, ls_sku_products, min_confidence=60)
 
-    # Convert to DataFrame
+    # Convert to DataFrame (product_key is already included from batch_match)
     df_results = pd.DataFrame(results)
-
-    # Add product_key back to results by joining with original data
-    df_results = df_results.merge(
-        df_install[['Product_Name', 'product_key']],
-        left_on='install_base_product',
-        right_on='Product_Name',
-        how='left'
-    )
 
     # Summary statistics
     print(f"\n✅ Matching complete!")
