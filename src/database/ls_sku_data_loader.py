@@ -460,10 +460,17 @@ class LSSKUDataLoader:
 
 # Main execution
 if __name__ == "__main__":
-    # File paths
-    ls_sku_file = "/Users/jjayaraj/workspaces/HPE/onelead_system/data/LS_SKU_for_Onelead.xlsx"
-    excel_file = "/Users/jjayaraj/workspaces/HPE/onelead_system/data/DataExportAug29th.xlsx"
-    db_file = "/Users/jjayaraj/workspaces/HPE/onelead_system/data/onelead.db"
+    # File paths - use relative paths from current working directory
+    import os
+    from pathlib import Path
+
+    # Work from current directory (handles both local and Streamlit Cloud)
+    current_dir = Path(os.getcwd())
+    data_dir = current_dir / 'data'
+
+    ls_sku_file = str(data_dir / 'LS_SKU_for_Onelead.xlsx')
+    excel_file = str(data_dir / 'DataExportAug29th.xlsx')
+    db_file = str(data_dir / 'onelead.db')
 
     # Initialize loader
     loader = LSSKUDataLoader(db_file)
