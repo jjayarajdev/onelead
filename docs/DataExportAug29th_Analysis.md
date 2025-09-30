@@ -116,57 +116,209 @@ This document provides a comprehensive analysis of the HPE data export file cont
 
 ---
 
-## Relationship Mapping
+## Entity Relationship Diagram (ERD)
+
+### Conceptual Data Model
 
 ```mermaid
-graph TD
-    subgraph "Customer System 1 (5-digit IDs)"
-        IB[Install Base<br/>10 accounts]
-        OP[Opportunity<br/>8 accounts]
-    end
+erDiagram
+    INSTALL_BASE {
+        string account_sales_territory_id PK
+        string product_serial_number PK
+        string product_platform_description_name
+        string product_business
+        string product_number
+        string product_description
+        string support_business
+        string support_status
+        date product_end_of_life_date
+        date product_end_of_service_life_date
+        date final_service_start_date
+        date final_service_end_date
+    }
     
-    subgraph "Customer System 2 (9-digit IDs)"
-        AP[A&PS Projects<br/>3 customers]
-    end
+    OPPORTUNITY {
+        string hpe_opportunity_id PK
+        string opportunity_name
+        string account_st_id FK
+        string account_name
+        string product_line
+    }
     
-    subgraph "Project Systems"
-        SC[Service Credits<br/>1,384 projects]
-    end
+    APS_PROJECT {
+        string prj_customer_id PK
+        string project PK
+        string prj_description
+        string prj_practice
+        date prj_start_date
+        date prj_end_date
+        string prj_status_description
+        string country
+        string prj_size
+        string prj_length
+        string prj_customer
+    }
     
-    subgraph "Reference Data"
-        SV[Services Catalog<br/>286 services]
-    end
+    SERVICE_CREDITS {
+        string contractid PK
+        string customername
+        string contractnumber
+        string projectid FK
+        decimal purchasedcredits
+        decimal deliveredcredits  
+        decimal activecredits
+        decimal expiredcredits
+        date contractenddate
+    }
     
-    IB <-->|8 common<br/>Account IDs| OP
-    AP -.->|Different ID<br/>system| IB
-    AP -.->|Different project<br/>ID format| SC
-    SV -.->|Practice<br/>taxonomy| AP
-    SV -.->|Practice<br/>taxonomy| SC
+    SERVICES {
+        string practice PK
+        string sub_practice PK
+        string services PK
+    }
+    
+    CUSTOMER {
+        string customer_id_5digit PK
+        string customer_id_9digit
+        string customer_name
+        string territory
+        string region
+    }
+    
+    INSTALL_BASE ||--o{ CUSTOMER : "belongs to"
+    OPPORTUNITY }o--|| CUSTOMER : "associated with"
+    APS_PROJECT }o--|| CUSTOMER : "delivered to"
+    SERVICE_CREDITS }o--o{ APS_PROJECT : "funds"
+    SERVICES ||--o{ APS_PROJECT : "categorizes"
+    SERVICES ||--o{ SERVICE_CREDITS : "defines"
+    INSTALL_BASE ||--o{ OPPORTUNITY : "drives"
 ```
 
-### Direct Relationships
+### Physical Data Model (Current State)
 
-1. **Install Base ↔ Opportunity**
-   - Linked via: `Account_Sales_Territory_Id` = `Account ST ID`
-   - 8 accounts have both installed products and active opportunities
-   - Represents 80% of Install Base accounts having sales opportunities
+```mermaid
+graph TB
+    subgraph "Excel File: DataExportAug29th.xlsx"
+        subgraph "Sheet 1: Install Base"
+            IB["63 Records<br/>15 Columns<br/>Key: account_sales_territory_id"]
+        end
+        
+        subgraph "Sheet 2: Opportunity"
+            OP["98 Records<br/>5 Columns<br/>Key: hpe_opportunity_id"]
+        end
+        
+        subgraph "Sheet 3: A&PS Project sample"
+            AP["2,394 Records<br/>44 Columns<br/>Key: project"]
+        end
+        
+        subgraph "Sheet 4: Services"
+            SV["286 Records<br/>3 Columns<br/>Reference Data"]
+        end
+        
+        subgraph "Sheet 5: Service Credits"
+            SC["1,384 Records<br/>10 Columns<br/>Key: contractid"]
+        end
+    end
+    
+    IB -->|account_st_id = account_st_id| OP
+    AP -.->|Different ID System| IB
+    SC -.->|Different Project Format| AP
+    SV -->|Practice Taxonomy| AP
+    SV -->|Service Categories| SC
+```
 
-### Indirect Relationships
+## Relationship Mapping
 
-2. **A&PS Projects ↔ Other Sheets**
-   - Uses different customer ID system (9-digit vs 5-digit)
-   - Likely represents different organizational hierarchy
-   - No direct foreign key relationships
+### Data Relationships Matrix
 
-3. **Service Credits ↔ Projects**
-   - Different project ID formats prevent direct linking
-   - Both track professional services delivery
-   - Temporal overlap in date ranges suggests related activities
+| Parent Entity | Child Entity | Relationship Type | Join Key | Cardinality | Data Quality |
+|---------------|--------------|-------------------|----------|-------------|---------------|
+| CUSTOMER | INSTALL_BASE | Ownership | account_sales_territory_id | 1:M | ✅ Direct match |
+| CUSTOMER | OPPORTUNITY | Sales Pipeline | account_st_id | 1:M | ✅ Direct match |
+| CUSTOMER | APS_PROJECT | Service Delivery | customer_id (different system) | 1:M | ⚠️ Requires mapping |
+| APS_PROJECT | SERVICE_CREDITS | Funding | project_id (different format) | 1:M | ⚠️ Requires mapping |
+| SERVICES | APS_PROJECT | Categorization | practice | 1:M | ⚠️ Inconsistent naming |
+| SERVICES | SERVICE_CREDITS | Service Type | service description | 1:M | ⚠️ Indirect link |
+| INSTALL_BASE | OPPORTUNITY | Cross-sell/Upsell | account_id | M:M | ✅ Via customer |
 
-4. **Services Catalog ↔ All Service Sheets**
-   - Provides service taxonomy
-   - Inconsistent naming conventions across sheets
-   - Acts as reference data rather than transactional link
+### Discovered Relationships
+
+```mermaid
+graph LR
+    subgraph "Strong Relationships (Direct Keys)"
+        IB1[Install Base] <--> OP1[Opportunity]
+        IB1 --> C1[Customer 5-digit]
+        OP1 --> C1
+    end
+    
+    subgraph "Weak Relationships (Requires Mapping)"
+        AP1[APS Projects] -.-> C2[Customer 9-digit]
+        SC1[Service Credits] -.-> AP1
+    end
+    
+    subgraph "Reference Relationships"
+        SV1[Services Catalog] ==> AP1
+        SV1 ==> SC1
+    end
+```
+
+### Relationship Details
+
+#### 1. Strong Relationships (Direct Foreign Keys)
+
+##### **Install Base ↔ Opportunity**
+- **Join Condition**: `Install_Base.Account_Sales_Territory_Id = Opportunity.Account_ST_ID`
+- **Type**: Many-to-Many (through Customer entity)
+- **Coverage**: 8 of 10 Install Base accounts (80%) have opportunities
+- **Business Meaning**: Installed products drive new sales opportunities
+
+```sql
+-- Example Join Query
+SELECT 
+    ib.account_sales_territory_id,
+    COUNT(DISTINCT ib.product_serial_number) as installed_products,
+    COUNT(DISTINCT op.hpe_opportunity_id) as active_opportunities
+FROM install_base ib
+LEFT JOIN opportunity op 
+    ON ib.account_sales_territory_id = op.account_st_id
+GROUP BY ib.account_sales_territory_id;
+```
+
+#### 2. Weak Relationships (Requires Data Mapping)
+
+##### **A&PS Projects ↔ Install Base/Opportunity**
+- **Challenge**: Different customer ID systems
+  - Install Base: 5-digit IDs (e.g., 56088)
+  - A&PS Projects: 9-digit IDs (e.g., 110079582)
+- **Solution Required**: Customer master mapping table
+- **Business Impact**: Cannot directly link services to product installations
+
+##### **Service Credits ↔ A&PS Projects**
+- **Challenge**: Different project ID formats
+  - A&PS Projects: JP3-Kxxxx format
+  - Service Credits: PR-xxxxxxx format
+- **Temporal Link**: Date ranges overlap suggesting relationship
+- **Business Impact**: Cannot track credit consumption by specific project
+
+#### 3. Reference Relationships
+
+##### **Services Catalog ↔ Project/Credit Sheets**
+- **Type**: Lookup/Reference data
+- **Purpose**: Standardize service categorization
+- **Challenge**: Inconsistent naming across sheets:
+  - Services: "Hybrid Cloud Engineering"
+  - A&PS: "CLD & PLT"
+  - Credits: "Technical Services"
+
+### Entity Cardinality Analysis
+
+| Relationship | Type | Cardinality | Business Rule |
+|--------------|------|-------------|----------------|
+| Customer → Install Base | Ownership | 1:M | One customer has multiple installations |
+| Customer → Opportunity | Pipeline | 1:M | One customer has multiple opportunities |
+| Install Base → Support | Coverage | 1:1 | Each installation has one support status |
+| Project → Service Credits | Funding | 1:M | One project may use multiple credit contracts |
+| Services → Projects | Classification | 1:M | One service type delivered in multiple projects |
 
 ---
 
@@ -190,6 +342,60 @@ graph TD
 
 ---
 
+## Data Model Insights
+
+### Current State vs. Ideal State
+
+```mermaid
+graph TB
+    subgraph "Current State (Disconnected)"
+        CS1[5-digit Customer IDs]
+        CS2[9-digit Customer IDs]
+        PS1[JP3-K Project IDs]
+        PS2[PR- Project IDs]
+        CS1 -.X.- CS2
+        PS1 -.X.- PS2
+    end
+    
+    subgraph "Ideal State (Unified)"
+        UC[Unified Customer Master]
+        UP[Unified Project Registry]
+        UC --> IB2[Install Base]
+        UC --> OP2[Opportunities]
+        UC --> AP2[Projects]
+        UP --> AP2
+        UP --> SC2[Credits]
+    end
+```
+
+### Missing Entities (Gap Analysis)
+
+Based on the ER analysis, the following entities should exist but are missing:
+
+1. **CUSTOMER_MASTER**
+   - Unified customer identifier
+   - Customer hierarchy (parent/child relationships)
+   - Geographic information
+   - Industry classification
+
+2. **PRODUCT_CATALOG**
+   - Complete product hierarchy
+   - Product lifecycle stages
+   - Replacement product mappings
+   - List prices and configurations
+
+3. **PROJECT_REGISTRY**
+   - Unified project tracking
+   - Project financials (value, margin)
+   - Resource allocation
+   - Deliverables and milestones
+
+4. **FINANCIAL_FACTS**
+   - Opportunity values
+   - Contract amounts
+   - Revenue recognition
+   - Profitability metrics
+
 ## Data Integration Challenges
 
 ### 1. Identifier Inconsistency
@@ -211,72 +417,6 @@ graph TD
 - **A&PS Projects** isolated from Install Base/Opportunity
 - **Service Credits** isolated from actual projects
 - No revenue/financial data to measure opportunity value
-
----
-
-## Recommendations
-
-### Immediate Actions
-
-1. **Create Mapping Tables**
-   - Customer ID mapping: 5-digit ↔ 9-digit
-   - Project ID mapping: JP3-K ↔ PR- formats
-   - Practice taxonomy standardization
-
-2. **Data Enrichment**
-   - Add financial metrics (opportunity value, project revenue)
-   - Include customer hierarchy information
-   - Add geographic data for Install Base and Opportunities
-
-3. **Establish Foreign Keys**
-   - Add consistent customer_id to all sheets
-   - Create unified project_id system
-   - Implement practice_id reference codes
-
-### Long-term Improvements
-
-1. **Data Warehouse Design**
-   - Create dimensional model with:
-     - Customer dimension (unified)
-     - Product dimension
-     - Service dimension
-     - Time dimension
-   - Fact tables for:
-     - Installations
-     - Opportunities
-     - Projects
-     - Service credit consumption
-
-2. **Master Data Management**
-   - Establish single source of truth for:
-     - Customer identifiers
-     - Product catalog
-     - Service catalog
-     - Practice taxonomy
-
-3. **Data Quality Framework**
-   - Implement validation rules
-   - Create data lineage documentation
-   - Establish data governance policies
-
----
-
-## Appendix: Data Statistics
-
-### Record Counts by Sheet
-| Sheet | Records | Columns | Unique Keys |
-|-------|---------|---------|-------------|
-| Install Base | 63 | 15 | 10 accounts |
-| Opportunity | 98 | 5 | 8 accounts |
-| A&PS Projects | 2,394 | 44 | 3 customers |
-| Services | 286 | 3 | 3 practices |
-| Service Credits | 1,384 | 10 | 1,384 projects |
-
-### Data Completeness
-- Install Base: 100% account coverage
-- Opportunity: 80% of Install Base accounts
-- A&PS Projects: Separate customer base
-- Service Credits: No direct project linkage
 
 ---
 

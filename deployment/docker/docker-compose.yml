@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    container_name: onelead-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://user:password@postgres:5432/onelead
+      - REDIS_URL=redis://redis:6379
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ../../src:/app/src
+      - ../../data:/app/data
+      - ../../models:/app/models
+      - ../../logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - mlflow
+    networks:
+      - onelead-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: onelead-postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=onelead
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - onelead-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: onelead-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - onelead-network
+    restart: unless-stopped
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: onelead-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_STORE_URI=postgresql://user:password@postgres:5432/mlflow
+      - DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow-artifacts:/mlflow/artifacts
+    depends_on:
+      - postgres
+    networks:
+      - onelead-network
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://user:password@postgres:5432/mlflow
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: onelead-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - onelead-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: onelead-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - onelead-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  mlflow-artifacts:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  onelead-network:
+    driver: bridge
