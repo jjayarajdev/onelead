@@ -380,9 +380,9 @@ if __name__ == "__main__":
     df_install = pd.read_sql_query("""
         SELECT
             p.product_key,
-            p.product_description as install_base_product,
-            p.product_platform as install_base_platform,
-            p.product_portfolio as install_base_category
+            p.product_description as Product_Name,
+            p.product_platform as Product_Platform_Description_Name,
+            p.product_business as Business_Area_Description_Name
         FROM dim_product p
     """, conn)
     print(f"   Found {len(df_install)} products in Install Base")
@@ -400,7 +400,7 @@ if __name__ == "__main__":
     # Initialize matcher
     matcher = ProductMatcher()
 
-    # Convert Install Base to list of dicts
+    # Convert Install Base to list of dicts (with column names matching batch_match expectations)
     install_products = df_install.to_dict('records')
 
     # Perform batch matching
@@ -409,6 +409,14 @@ if __name__ == "__main__":
 
     # Convert to DataFrame
     df_results = pd.DataFrame(results)
+
+    # Add product_key back to results by joining with original data
+    df_results = df_results.merge(
+        df_install[['Product_Name', 'product_key']],
+        left_on='install_base_product',
+        right_on='Product_Name',
+        how='left'
+    )
 
     # Summary statistics
     print(f"\n✅ Matching complete!")
