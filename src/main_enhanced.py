@@ -10,6 +10,57 @@ import plotly.graph_objects as go
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import os
+import sys
+import subprocess
+
+# Auto-setup database if not exists
+def setup_database_if_needed():
+    """Check if database exists, create if not"""
+    db_path = 'data/onelead.db'
+
+    if not os.path.exists(db_path):
+        st.info("🔄 Setting up database for the first time... This will take about 30 seconds.")
+
+        try:
+            # Run database creation script
+            with st.spinner("Creating database schema..."):
+                result = subprocess.run(
+                    [sys.executable, 'src/database/create_sqlite_database.py'],
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+
+                if result.returncode != 0:
+                    st.error(f"Database creation failed: {result.stderr}")
+                    return False
+
+            # Load LS_SKU data
+            with st.spinner("Loading service catalog..."):
+                result = subprocess.run(
+                    [sys.executable, 'src/database/ls_sku_data_loader.py'],
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+
+                if result.returncode != 0:
+                    st.error(f"LS_SKU loading failed: {result.stderr}")
+                    return False
+
+            st.success("✅ Database setup complete!")
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"❌ Error setting up database: {str(e)}")
+            return False
+
+    return True
+
+# Check database before importing data loaders
+if not setup_database_if_needed():
+    st.stop()
 
 # Import data loaders
 from data_processing.sqlite_loader import OneleadSQLiteLoader
