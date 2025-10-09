@@ -1,0 +1,75 @@
+# OneLead Configuration
+
+database:
+  path: "database/onelead.db"
+  echo: false
+
+data_sources:
+  install_base: "data/DataExportAug29th.xlsx"
+  service_sku: "data/LS_SKU_for_Onelead.xlsx"
+
+scoring_weights:
+  urgency: 0.35
+  value: 0.30
+  propensity: 0.20
+  strategic_fit: 0.15
+
+urgency_thresholds:
+  critical_days_past_eol: 1825  # 5 years
+  high_days_past_expiry: 180    # 6 months
+  medium_days_until_eos: 180    # 6 months
+
+lead_types:
+  renewal: "Renewal - Expired Support"
+  hardware_refresh: "Hardware Refresh - EOL Equipment"
+  service_attach: "Service Attach - Coverage Gap"
+  cross_sell: "Cross-sell - Portfolio Expansion"
+
+# Account name normalization patterns
+account_normalization:
+  patterns:
+    - ["Apple Inc", "APPLE INC.", "Apple Computer Inc", "APPLE COMPUTER INC"]
+    - ["Applied Materials, Inc.", "APPLIED MATERIALS, INC."]
+  fuzzy_threshold: 85  # Levenshtein ratio threshold
+
+# Territory ID to Account Name mapping (from opportunities data)
+territory_mapping:
+  "56088": "Apple Inc"
+  "56160": "Antofagasta Minerals S.A."
+  "56166": "Applied Computer Solutions"
+  "56180": "APPLIED MATERIALS, INC."
+  "56322": "Analog Devices"
+  "56396": "ARAMARK SERVICES, INC."
+  "56623": "Franklin Baystate Medical Center"
+  "56769": "Baltimore City Public School Systems (inc)"
+
+# Product family mappings
+product_families:
+  compute:
+    - "DL"
+    - "ML"
+    - "BL"
+    - "Gen"
+  storage:
+    - "3PAR"
+    - "Primera"
+    - "Alletra"
+    - "Nimble"
+    - "MSA"
+    - "StoreOnce"
+    - "MSL"
+
+# Service bundle templates
+service_bundles:
+  storage_basic:
+    name: "Storage Health & Optimization"
+    min_value: 50000
+    max_value: 100000
+  storage_premium:
+    name: "Storage Transformation"
+    min_value: 100000
+    max_value: 250000
+  compute_refresh:
+    name: "Compute Modernization"
+    min_value: 75000
+    max_value: 200000
