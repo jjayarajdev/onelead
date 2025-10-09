@@ -1,0 +1,22 @@
+# OneLead - Lead Generation & Sales Intelligence System
+
+# Data Processing
+pandas==2.1.4
+openpyxl==3.1.2
+numpy==1.26.3
+
+# Database
+sqlalchemy==2.0.25
+alembic==1.13.1
+
+# Fuzzy Matching for Account Normalization
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.25.0
+
+# Web Framework
+streamlit==1.31.0
+plotly==5.18.0
+
+# Utilities
+python-dotenv==1.0.1
+pyyaml==6.0.1
