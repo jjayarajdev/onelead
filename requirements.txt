@@ -1,22 +1,23 @@
 # OneLead - Lead Generation & Sales Intelligence System
+# Optimized for Streamlit Cloud deployment
 
 # Data Processing
-pandas==2.1.4
-openpyxl==3.1.2
-numpy==1.26.3
+pandas>=2.0.0,<3.0.0
+openpyxl>=3.1.0
+numpy>=1.24.0,<2.0.0
 
 # Database
-sqlalchemy==2.0.25
-alembic==1.13.1
+sqlalchemy>=2.0.0,<3.0.0
 
 # Fuzzy Matching for Account Normalization
-fuzzywuzzy==0.18.0
-python-Levenshtein==0.25.0
+fuzzywuzzy>=0.18.0
+# Note: python-Levenshtein removed - causes build issues on Streamlit Cloud
+# fuzzywuzzy will fall back to pure Python implementation
 
 # Web Framework
-streamlit==1.31.0
-plotly==5.18.0
+streamlit>=1.28.0
+plotly>=5.17.0
 
 # Utilities
-python-dotenv==1.0.1
-pyyaml==6.0.1
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
