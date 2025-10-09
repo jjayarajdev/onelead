@@ -1009,11 +1009,16 @@ def render_analytics(leads_df):
     st.markdown("""
     <div class="section-header">
         <div>
-            <h2 class="section-title">Pipeline Analytics</h2>
-            <p class="section-subtitle">Data-driven insights to optimize your sales strategy</p>
+            <h2 class="section-title">📊 Understanding Your Pipeline</h2>
+            <p class="section-subtitle">See where your revenue opportunities are and how to prioritize your time</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Calculate summary stats for context
+    total_value = leads_df['estimated_value'].sum()
+    critical_value = leads_df[leads_df['priority'] == 'CRITICAL']['estimated_value'].sum()
+    critical_pct = (critical_value / total_value * 100) if total_value > 0 else 0
 
     col1, col2 = st.columns(2)
 
@@ -1053,6 +1058,14 @@ def render_analytics(leads_df):
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.plotly_chart(fig_priority, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
+        # Add explanation
+        st.markdown(f"""
+        **💡 What This Means:**
+        - **{critical_pct:.0f}%** of your pipeline value is in CRITICAL priority leads
+        - Focus on red (CRITICAL) and orange (HIGH) bars first
+        - These are time-sensitive opportunities that need immediate attention
+        """)
 
     with col2:
         # Lead Type Distribution
@@ -1095,6 +1108,18 @@ def render_analytics(leads_df):
         st.plotly_chart(fig_type, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
+        # Add explanation
+        renewal_count = len(leads_df[leads_df['lead_type'] == 'renewal'])
+        hardware_count = len(leads_df[leads_df['lead_type'] == 'hardware_refresh'])
+        service_count = len(leads_df[leads_df['lead_type'] == 'service_attach'])
+
+        st.markdown(f"""
+        **💡 What This Means:**
+        - **Support Renewals ({renewal_count})**: Easiest wins - customers already know they need this
+        - **Hardware Refresh ({hardware_count})**: Larger deals - equipment replacement opportunities
+        - **Service Attach ({service_count})**: Coverage gaps - quick additions to existing base
+        """)
+
     # Score Distribution Histogram
     fig_score = go.Figure(data=[
         go.Histogram(
@@ -1109,8 +1134,8 @@ def render_analytics(leads_df):
     ])
 
     fig_score.update_layout(
-        title='Lead Score Distribution - Quality Analysis',
-        xaxis_title='Lead Score',
+        title='Lead Quality Distribution - Are Your Leads Worth Pursuing?',
+        xaxis_title='Lead Score (0-100)',
         yaxis_title='Number of Leads',
         height=300,
         margin=dict(t=40, b=40, l=40, r=40),
@@ -1122,6 +1147,20 @@ def render_analytics(leads_df):
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     st.plotly_chart(fig_score, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
+    # Calculate quality metrics
+    high_quality = len(leads_df[leads_df['score'] >= 75])
+    medium_quality = len(leads_df[(leads_df['score'] >= 60) & (leads_df['score'] < 75)])
+    avg_score = leads_df['score'].mean()
+
+    st.markdown(f"""
+    **💡 What This Means:**
+    - **{high_quality} leads** scored 75+ (CRITICAL priority) - these are your best bets
+    - **{medium_quality} leads** scored 60-74 (HIGH priority) - strong opportunities
+    - **Average score: {avg_score:.0f}** - {"Good quality pipeline" if avg_score >= 65 else "Consider focusing on higher-scoring leads"}
+
+    **Action:** Prioritize leads on the right side of this chart (higher scores = better opportunities)
+    """)
 
 
 def main():
