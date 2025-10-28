@@ -5,11 +5,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import sys
 from pathlib import Path
+import logging
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models import Lead, InstallBase, Account, Opportunity, Project
 from src.utils.config_loader import config
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 
 class LeadScorer:
@@ -62,6 +66,16 @@ class LeadScorer:
             strategic_fit_score * self.weights['strategic_fit']
         )
 
+        # Log detailed scoring breakdown
+        logger.info(f"Lead ID {lead.id} scoring breakdown:")
+        logger.info(f"  Title: {lead.title}")
+        logger.info(f"  Type: {lead.lead_type}")
+        logger.info(f"  Urgency: {urgency_score:.1f} (weight {self.weights['urgency']}) = {urgency_score * self.weights['urgency']:.1f}")
+        logger.info(f"  Value: {value_score:.1f} (weight {self.weights['value']}) = {value_score * self.weights['value']:.1f}")
+        logger.info(f"  Propensity: {propensity_score:.1f} (weight {self.weights['propensity']}) = {propensity_score * self.weights['propensity']:.1f}")
+        logger.info(f"  Strategic: {strategic_fit_score:.1f} (weight {self.weights['strategic_fit']}) = {strategic_fit_score * self.weights['strategic_fit']:.1f}")
+        logger.info(f"  TOTAL: {overall_score:.1f}")
+
         # Update lead
         lead.urgency_score = urgency_score
         lead.value_score = value_score
@@ -78,6 +92,9 @@ class LeadScorer:
             lead.priority = 'MEDIUM'
         else:
             lead.priority = 'LOW'
+
+        logger.info(f"  Priority: {lead.priority}")
+        logger.info("")  # Blank line for readability
 
         return overall_score
 

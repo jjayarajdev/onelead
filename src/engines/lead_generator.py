@@ -56,6 +56,12 @@ class LeadGenerator:
             if existing:
                 continue
 
+            # Estimate renewal value based on product family
+            estimated_min, estimated_max = self._estimate_renewal_value(
+                item.product_family or '',
+                item.product_name or ''
+            )
+
             # Create renewal lead
             lead = Lead(
                 lead_type='Renewal - Expired Support',
@@ -66,6 +72,8 @@ class LeadGenerator:
                            f"EOL Date: {item.product_eol_date or 'N/A'}.",
                 recommended_action=f"Contact account to renew support contract. "
                                  f"Product has been without support for {item.days_since_expiry or 0} days.",
+                estimated_value_min=estimated_min,
+                estimated_value_max=estimated_max,
                 account_id=item.account_id,
                 install_base_id=item.id,
                 territory_id=item.territory_id,
@@ -187,3 +195,46 @@ class LeadGenerator:
             }
 
         return None
+
+    def _estimate_renewal_value(self, product_family: str, product_name: str = '') -> tuple:
+        """Estimate annual support value for a product based on product family.
+
+        Returns (min_value, max_value) tuple for estimated annual support cost.
+        """
+        if not product_family:
+            return (5000, 15000)  # Conservative default
+
+        # Product family benchmarks based on typical support contract values
+        benchmarks = {
+            'PROLIANT': (3000, 8000),      # Standard servers
+            'DL': (3000, 8000),             # DL series servers
+            'ML': (2500, 7000),             # ML series servers
+            'BL': (4000, 10000),            # Blade servers (higher complexity)
+            '3PAR': (15000, 40000),         # Storage arrays
+            'PRIMERA': (25000, 60000),      # High-end storage
+            'ALLETRA': (20000, 50000),      # Modern storage platform
+            'NIMBLE': (12000, 30000),       # Mid-range storage
+            'MSA': (5000, 15000),           # Entry-level storage
+            'STOREEASY': (8000, 20000),     # NAS solutions
+            'STOREONCE': (10000, 25000),    # Backup appliances
+            'SIMPLIVITY': (15000, 35000),   # Hyperconverged
+            'SYNERGY': (20000, 50000),      # Composable infrastructure
+            'APOLLO': (10000, 25000),       # HPC systems
+            'SUPERDOME': (40000, 100000),   # Mission-critical systems
+        }
+
+        # Check product family first
+        product_family_upper = product_family.upper()
+        for family, (min_val, max_val) in benchmarks.items():
+            if family in product_family_upper:
+                return (min_val, max_val)
+
+        # Check product name as fallback
+        if product_name:
+            product_name_upper = product_name.upper()
+            for family, (min_val, max_val) in benchmarks.items():
+                if family in product_name_upper:
+                    return (min_val, max_val)
+
+        # Default for unknown products
+        return (5000, 15000)
