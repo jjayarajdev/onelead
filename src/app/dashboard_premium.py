@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.models import SessionLocal, Lead, InstallBase, Account, Opportunity, Project
+from src.models import SessionLocal, Lead, InstallBase, Account, Opportunity, Project, ServiceCatalog, ServiceSKUMapping
 
 # Page configuration
 st.set_page_config(
@@ -511,6 +511,7 @@ def load_dashboard_data():
             leads_data.append({
                 'id': lead.id,
                 'account_id': lead.account_id,
+                'install_base_id': lead.install_base_id,  # CRITICAL: Needed for service lookup!
                 'account_name': lead.account.account_name if lead.account else 'Unknown',
                 'territory': lead.territory_id or 'Unknown',
                 'lead_type': lead.lead_type,
@@ -650,95 +651,245 @@ def render_metrics(leads_df, stats):
 
 
 def render_insights(leads_df):
-    """Render actionable insights."""
-    critical_leads = leads_df[leads_df['priority'] == 'CRITICAL']
-    critical_value = critical_leads['estimated_value'].sum()
-
-    renewal_leads = leads_df[leads_df['lead_type'] == 'renewal']
-    renewal_value = renewal_leads['estimated_value'].sum()
-
-    hardware_leads = leads_df[leads_df['lead_type'] == 'hardware_refresh']
+    """Render actionable insights based on REAL data only."""
+    # Get actual lead type counts and values - use exact database values
+    hardware_leads = leads_df[leads_df['lead_type'] == 'Hardware Refresh - EOL Equipment']
     hardware_value = hardware_leads['estimated_value'].sum()
+    hardware_critical = len(hardware_leads[hardware_leads['priority'] == 'CRITICAL'])
+    hardware_high = len(hardware_leads[hardware_leads['priority'] == 'HIGH'])
 
-    # Critical Situations Insight
-    st.markdown(f"""
-    <div class="insight-card critical animate-in">
-        <div class="insight-header">
-            <div class="insight-icon critical">⚠️</div>
-            <div>
-                <h3 class="insight-title">Critical Situations Requiring Immediate Action</h3>
-                <div class="insight-account">{len(critical_leads)} high-priority opportunities identified</div>
-            </div>
-        </div>
-        <div class="insight-body">
-            <strong>The Risk:</strong> These customers are running production systems without support or with severely outdated equipment.
-            Every day of delay increases their operational risk and the likelihood they'll engage with competitors.
-        </div>
-        <div class="insight-value">${critical_value/1000:.0f}K in immediate revenue opportunity</div>
-        <div class="insight-body">
-            <strong>Your Action Plan:</strong> Schedule discovery calls with the top 3 accounts this week.
-            Lead with a complimentary infrastructure health assessment. Average close time for critical situations: 45 days.
-        </div>
-        <div class="insight-actions">
-            <button class="action-button primary">📞 View Top 3 Priorities</button>
-            <button class="action-button secondary">📧 Generate Email Campaign</button>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    renewal_leads = leads_df[leads_df['lead_type'] == 'Renewal - Expired Support']
+    renewal_value = renewal_leads['estimated_value'].sum()
+    renewal_high = len(renewal_leads[renewal_leads['priority'] == 'HIGH'])
+    renewal_medium = len(renewal_leads[renewal_leads['priority'] == 'MEDIUM'])
 
-    # Hardware Refresh Opportunity
-    if len(hardware_leads) > 0:
+    service_leads = leads_df[leads_df['lead_type'] == 'Service Attach - Coverage Gap']
+    service_value = service_leads['estimated_value'].sum()
+    service_high = len(service_leads[service_leads['priority'] == 'HIGH'])
+
+    # Show insights in 3 columns
+    col1, col2, col3 = st.columns(3)
+
+    # Hardware Refresh - highest value
+    with col1:
         st.markdown(f"""
         <div class="insight-card opportunity animate-in">
             <div class="insight-header">
-                <div class="insight-icon opportunity">🚀</div>
+                <div class="insight-icon opportunity">🔧</div>
                 <div>
-                    <h3 class="insight-title">Major Hardware Refresh Wave Detected</h3>
-                    <div class="insight-account">{len(hardware_leads)} customers with aging infrastructure</div>
+                    <h3 class="insight-title">Hardware Refresh</h3>
+                    <div class="insight-account">{len(hardware_leads)} leads • ${hardware_value/1000:.0f}K</div>
                 </div>
             </div>
-            <div class="insight-body">
-                <strong>The Opportunity:</strong> You have customers running equipment that's 5+ years past end-of-life.
-                Modern systems offer 3x performance improvement, 50% energy savings, and AI-powered management capabilities.
-            </div>
-            <div class="insight-value">${hardware_value/1000:.0f}K hardware modernization pipeline</div>
-            <div class="insight-body">
-                <strong>The Pitch:</strong> "Your infrastructure is holding your business back. Let's schedule a 30-minute
-                TCO analysis to show you how modern systems can reduce costs while improving performance."
-            </div>
-            <div class="insight-actions">
-                <button class="action-button primary">📊 Build Business Case</button>
-                <button class="action-button secondary">📅 Schedule Reviews</button>
+            <div class="insight-body" style="font-size: 0.85rem;">
+                EOL equipment replacement<br/>
+                <span style="color: #dc2626;">{hardware_critical} Critical</span> •
+                <span style="color: #f59e0b;">{hardware_high} High</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Renewal Revenue Insight
-    if len(renewal_leads) > 0:
+    # Service Attach
+    with col2:
         st.markdown(f"""
         <div class="insight-card info animate-in">
             <div class="insight-header">
-                <div class="insight-icon info">💰</div>
+                <div class="insight-icon info">📦</div>
                 <div>
-                    <h3 class="insight-title">Service Renewal Revenue - Low-Hanging Fruit</h3>
-                    <div class="insight-account">{len(renewal_leads)} customers with expired or expiring support</div>
+                    <h3 class="insight-title">Service Attach</h3>
+                    <div class="insight-account">{len(service_leads)} leads • ${service_value/1000:.0f}K</div>
                 </div>
             </div>
-            <div class="insight-body">
-                <strong>Why This Matters:</strong> Service renewals are your highest-probability deals.
-                These customers already use HPE equipment and understand the value of support. Average close rate: 85%.
-            </div>
-            <div class="insight-value">${renewal_value/1000:.0f}K in renewal revenue</div>
-            <div class="insight-body">
-                <strong>Quick Win Strategy:</strong> Segment into three tiers - send automated renewal reminders to low-value accounts,
-                personal outreach for mid-tier, and strategic business reviews for high-value customers.
-            </div>
-            <div class="insight-actions">
-                <button class="action-button primary">✅ Auto-Renew Queue</button>
-                <button class="action-button secondary">📞 High-Value Outreach</button>
+            <div class="insight-body" style="font-size: 0.85rem;">
+                Coverage gap opportunities<br/>
+                <span style="color: #f59e0b;">{service_high} High priority</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # Renewal
+    with col3:
+        st.markdown(f"""
+        <div class="insight-card critical animate-in">
+            <div class="insight-header">
+                <div class="insight-icon critical">🔄</div>
+                <div>
+                    <h3 class="insight-title">Renewals</h3>
+                    <div class="insight-account">{len(renewal_leads)} leads • ${renewal_value/1000:.0f}K</div>
+                </div>
+            </div>
+            <div class="insight-body" style="font-size: 0.85rem;">
+                Expired support contracts<br/>
+                <span style="color: #f59e0b;">{renewal_high} High</span> •
+                <span style="color: #0891b2;">{renewal_medium} Medium</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def get_recommended_services_for_lead(lead, session):
+    """Get actual HPE services from catalog based on lead details."""
+    # Get product family from install base
+    if not lead.get('install_base_id'):
+        return []
+
+    # Use session.get() instead of query().get()
+    install_base = session.get(InstallBase, lead['install_base_id'])
+    if not install_base:
+        return []
+
+    product_family = (install_base.product_family or '').upper()
+    product_name = (install_base.product_name or '').upper()
+
+    # Filter by lead type
+    lead_type = lead['lead_type']
+    recommended_services = []
+
+    if 'Renewal' in lead_type:
+        preferred_categories = ['Health Check', 'Optimization', 'Performance Analysis']
+    elif 'Hardware Refresh' in lead_type:
+        preferred_categories = ['Migration', 'Design & Implementation', 'Health Check', 'Upgrade']
+    elif 'Service Attach' in lead_type:
+        preferred_categories = ['Install', 'Configuration', 'Health Check', 'Deployment']
+    else:
+        preferred_categories = ['Health Check']
+
+    # STRATEGY 1: Try ServiceSKUMapping (has SKUs for Storage products)
+    mappings = session.query(ServiceSKUMapping).filter(
+        ServiceSKUMapping.product_family.ilike(f'%{product_family}%')
+    ).all()
+
+    for mapping in mappings:
+        for pref_cat in preferred_categories:
+            if pref_cat.lower() in mapping.service_type.lower():
+                recommended_services.append({
+                    'service_type': mapping.service_type,
+                    'service_sku': mapping.service_sku or 'Contact HPE',
+                    'product_family': mapping.product_family
+                })
+                break
+
+    # STRATEGY 2: If no SKU mappings (e.g., COMPUTE products), use ServiceCatalog
+    if not recommended_services:
+        # Check if this is ACTUALLY a server (not just a component)
+        is_actual_server = any(keyword in product_name for keyword in ['DL360', 'DL380', 'DL560', 'DL580', 'ML350', 'ML110', 'BL460', 'BL660', 'PROLIANT', 'SERVER'])
+
+        # Only show relevant services for actual servers, not HDDs/memory/components
+        if is_actual_server:
+            # Get services relevant to server hardware - broader than just "compute"
+            relevant_services = session.query(ServiceCatalog).filter(
+                ServiceCatalog.service_category.in_(preferred_categories)
+            ).all()
+
+            # Score and filter services by relevance to lead type and product
+            scored_services = []
+            for svc in relevant_services:
+                svc_cat = (svc.service_category or '').lower()
+                svc_name = (svc.service_name or '').lower()
+                score = 0
+
+                # Match by preferred category (highest priority)
+                for pref in [p.lower() for p in preferred_categories]:
+                    if pref in svc_cat:
+                        score += 10
+                        break
+
+                # Bonus for compute/server-specific services
+                if any(word in svc_name for word in ['compute', 'server', 'proliant', 'dl', 'ml', 'blade']):
+                    score += 7
+
+                # Bonus for specific product mentions (makes it more relevant)
+                if 'DL' in product_name or 'PROLIANT' in product_name:
+                    if 'dl' in svc_name or 'proliant' in svc_name or 'compute' in svc_name:
+                        score += 3
+                if 'ML' in product_name:
+                    if 'ml' in svc_name and 'mlops' not in svc_name:  # ML servers, not MLOps
+                        score += 3
+                if 'BLADE' in product_name or 'BL' in product_name:
+                    if 'blade' in svc_name:
+                        score += 3
+
+                # STRONGLY penalize irrelevant services for hardware refresh
+                if 'Hardware Refresh' in lead_type:
+                    # These are not relevant for simple server hardware refresh
+                    if any(word in svc_name for word in ['mlops', 'middleware', 'database', 'db', 'oracle', 'sql server',
+                                                           'storage', 'san', 'backup', 'container', 'kubernetes', 'docker',
+                                                           'iot', 'data governance', 'app code']):
+                        score -= 15  # Strong penalty
+
+                if score > 0:
+                    scored_services.append((score, svc))
+
+            # Sort by score and take top services
+            scored_services.sort(key=lambda x: x[0], reverse=True)
+            for score, svc in scored_services[:5]:
+                recommended_services.append({
+                    'service_type': svc.service_name,
+                    'service_sku': 'Contact HPE',
+                    'product_family': 'Compute/Servers'
+                })
+        else:
+            # For components (HDDs, memory, etc.), show general services by category
+            # Don't show compute migration services for individual components
+            general_services = session.query(ServiceCatalog).filter(
+                ServiceCatalog.service_category.in_(preferred_categories)
+            ).limit(5).all()
+
+            if general_services:
+                for svc in general_services:
+                    recommended_services.append({
+                        'service_type': svc.service_name,
+                        'service_sku': 'Contact HPE',
+                        'product_family': svc.practice or 'General'
+                    })
+            else:
+                # For components without specific services, provide contextual message
+                return [{
+                    'service_type': f'This component is typically included in system-level services. See server-level recommendations.',
+                    'service_sku': 'N/A',
+                    'product_family': product_family or 'Component'
+                }]
+
+    # If still no services, return a helpful message
+    if not recommended_services:
+        return [{
+            'service_type': 'Contact HPE Partner Connect for service recommendations',
+            'service_sku': 'N/A',
+            'product_family': product_family or 'Unknown'
+        }]
+
+    return recommended_services[:5]  # Return top 5
+
+
+def generate_lead_recommendations(lead, session):
+    """Generate personalized recommendations for a lead with REAL HPE services."""
+    recommendations = {
+        'why_matters': '',
+        'services': [],
+        'urgency_reason': ''
+    }
+
+    # Get actual services from catalog
+    services = get_recommended_services_for_lead(lead, session)
+    recommendations['services'] = services
+
+    # Determine urgency reason
+    if lead['days_since_eol'] > 1825:
+        recommendations['urgency_reason'] = f"Equipment is {lead['days_since_eol']//365} years past end-of-life"
+    elif lead['days_since_eol'] > 365:
+        recommendations['urgency_reason'] = "Equipment has reached end-of-life"
+    else:
+        recommendations['urgency_reason'] = "Support contract has expired"
+
+    # Type-specific messaging - plain text (no markdown, will be in HTML)
+    if 'Renewal' in lead['lead_type']:
+        recommendations['why_matters'] = f"Renewal Opportunity: Customer has {lead['product_description']} without support coverage for {lead.get('days_since_expiry', 0)} days. Risk of downtime and security vulnerabilities. Worth ${lead['estimated_value']:,.0f} annually."
+    elif 'Hardware Refresh' in lead['lead_type']:
+        recommendations['why_matters'] = f"Hardware Refresh Opportunity: Equipment is {lead['days_since_eol']//365}+ years past end-of-life. Modern systems offer significant performance and cost savings. Worth ${lead['estimated_value']:,.0f}."
+    elif 'Service Attach' in lead['lead_type']:
+        recommendations['why_matters'] = f"Service Coverage Gap: Equipment without support coverage creates risk. Opportunity to attach services worth ${lead['estimated_value']:,.0f}."
+
+    return recommendations
 
 
 def render_lead_priorities(leads_df):
@@ -765,7 +916,7 @@ def render_lead_priorities(leads_df):
     with filter_col2:
         type_filter = st.selectbox(
             "Lead Type",
-            ["All", "renewal", "hardware_refresh", "service_attach"],
+            ["All", "Renewal - Expired Support", "Hardware Refresh - EOL Equipment", "Service Attach - Coverage Gap"],
             key="type_filter"
         )
 
@@ -794,7 +945,19 @@ def render_lead_priorities(leads_df):
         filtered_df = filtered_df.sort_values(['priority_rank', 'score'], ascending=[True, False])
 
     # Display leads
-    st.markdown(f"<p style='color: #64748b; margin: 1rem 0;'>Showing {len(filtered_df)} of {len(leads_df)} leads</p>", unsafe_allow_html=True)
+    col_info, col_export = st.columns([3, 1])
+    with col_info:
+        st.markdown(f"<p style='color: #64748b; margin: 1rem 0;'>Showing {len(filtered_df)} of {len(leads_df)} leads</p>", unsafe_allow_html=True)
+    with col_export:
+        # Export to CSV button
+        csv_data = filtered_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name=f"onelead_export_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            help="Download filtered leads as CSV for import into CRM or offline analysis"
+        )
 
     for idx, lead in filtered_df.head(10).iterrows():
         priority_class = lead['priority'].lower()
@@ -843,163 +1006,214 @@ def render_lead_priorities(leads_df):
             with col4:
                 st.markdown(f"**📅 Created:** {created_date}")
 
-            # Description boxes
-            st.markdown(f"""
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #e2e8f0;">
-                <strong>Situation:</strong> {description}...
-            </div>
-            """, unsafe_allow_html=True)
+            # Get DB session for service lookup
+            session = SessionLocal()
+            try:
+                # Get personalized recommendations with actual services
+                recommendations = generate_lead_recommendations(lead, session)
 
-            st.markdown(f"""
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #e2e8f0;">
-                <strong>Recommended Action:</strong> {recommended_action}
-            </div>
-            """, unsafe_allow_html=True)
+                # Why This Matters section
+                st.markdown(f"""
+                <div style="background: linear-gradient(to right, #eff6ff, #ffffff); padding: 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 4px solid #3b82f6;">
+                    <strong style="color: #1e40af; font-size: 1.05rem;">💡 Why This Matters:</strong><br/>
+                    {recommendations['why_matters']}
+                </div>
+                """, unsafe_allow_html=True)
 
-            # Action buttons
-            btn_col1, btn_col2, btn_col3, btn_col4 = st.columns([2, 2, 2, 4])
-            with btn_col1:
-                if st.button("📞 Contact", key=f"contact_{lead['id']}"):
-                    st.info(f"Opening contact form for {lead['account_name']}...")
-            with btn_col3:
-                if st.button("✅ Qualify", key=f"qualify_{lead['id']}"):
-                    st.success(f"Lead marked as qualified!")
+                # HPE Services Recommendations - improved layout
+                if recommendations.get('services') and len(recommendations['services']) > 0:
+                    st.markdown("""
+                    <div style="margin: 1rem 0 0.5rem 0;">
+                        <span style="font-size: 1.1rem; font-weight: 600; color: #1f2937;">🎯 Recommended HPE Services</span>
+                        <span style="font-size: 0.875rem; color: #6b7280; margin-left: 0.5rem;">Ready to attach to your quote</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Use 2-column layout for services to save space
+                    service_cols = st.columns(2)
+                    for idx, service in enumerate(recommendations['services'], 1):
+                        col = service_cols[idx % 2]
+                        with col:
+                            # Shorten service names if too long
+                            service_name = service['service_type']
+                            if len(service_name) > 60:
+                                service_name = service_name[:57] + "..."
+
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+                                        padding: 0.875rem;
+                                        border-radius: 8px;
+                                        margin: 0.5rem 0;
+                                        border: 1px solid #d1fae5;
+                                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                                    <div style="background: #10b981;
+                                                color: white;
+                                                min-width: 24px;
+                                                height: 24px;
+                                                border-radius: 50%;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                font-weight: 700;
+                                                font-size: 0.75rem;
+                                                flex-shrink: 0;">{idx}</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #065f46; font-size: 0.9rem; line-height: 1.3; margin-bottom: 0.5rem;">
+                                            {service_name}
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem;">
+                                            <span style="color: #059669;">
+                                                <span style="opacity: 0.7;">Family:</span> <strong>{service['product_family']}</strong>
+                                            </span>
+                                            <span style="color: #0891b2;">
+                                                <span style="opacity: 0.7;">SKU:</span> <strong>{service['service_sku']}</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                    # Add summary and quick actions
+                    st.markdown(f"""
+                    <div style="background: #f9fafb; padding: 0.75rem; border-radius: 6px; margin-top: 1rem; border: 1px dashed #d1d5db;">
+                        <div style="font-size: 0.875rem; color: #6b7280;">
+                            <strong style="color: #374151;">💡 Next Steps:</strong>
+                            Add these {len(recommendations['services'])} services to your quote to increase deal value by 20-40%.
+                            Services help ensure successful implementation and customer satisfaction.
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.info("💬 Contact HPE Partner Connect for service recommendations specific to this product.")
+
+            except Exception as e:
+                st.error(f"Error loading services: {str(e)}")
+                import traceback
+                st.code(traceback.format_exc())
+            finally:
+                session.close()
 
             # Details expander
             with st.expander("📋 View Full Details & Scoring Breakdown"):
-                st.markdown("### 🎯 Why This Lead is Recommended")
+                # Scoring breakdown - simplified and more visual
+                st.markdown("### 🎯 Score Components")
 
-                # Scoring breakdown
-                score_col1, score_col2, score_col3, score_col4 = st.columns(4)
-
-                with score_col1:
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 1rem; background: #fef2f2; border-radius: 8px; border: 2px solid #fca5a5;">
-                        <div style="font-size: 2rem; font-weight: 800; color: #dc2626;">{lead['urgency_score']:.0f}</div>
-                        <div style="font-size: 0.875rem; font-weight: 600; color: #991b1b; margin-top: 0.25rem;">URGENCY</div>
-                        <div style="font-size: 0.75rem; color: #7f1d1d; margin-top: 0.5rem;">Weight: 35%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                with score_col2:
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 1rem; background: #fef3c7; border-radius: 8px; border: 2px solid #fcd34d;">
-                        <div style="font-size: 2rem; font-weight: 800; color: #d97706;">{lead['value_score']:.0f}</div>
-                        <div style="font-size: 0.875rem; font-weight: 600; color: #92400e; margin-top: 0.25rem;">VALUE</div>
-                        <div style="font-size: 0.75rem; color: #78350f; margin-top: 0.5rem;">Weight: 30%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                with score_col3:
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 1rem; background: #dbeafe; border-radius: 8px; border: 2px solid #93c5fd;">
-                        <div style="font-size: 2rem; font-weight: 800; color: #2563eb;">{lead['propensity_score']:.0f}</div>
-                        <div style="font-size: 0.875rem; font-weight: 600; color: #1e40af; margin-top: 0.25rem;">PROPENSITY</div>
-                        <div style="font-size: 0.75rem; color: #1e3a8a; margin-top: 0.5rem;">Weight: 20%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                with score_col4:
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 2px solid #86efac;">
-                        <div style="font-size: 2rem; font-weight: 800; color: #16a34a;">{lead['strategic_fit_score']:.0f}</div>
-                        <div style="font-size: 0.875rem; font-weight: 600; color: #15803d; margin-top: 0.25rem;">STRATEGIC FIT</div>
-                        <div style="font-size: 0.75rem; color: #14532d; margin-top: 0.5rem;">Weight: 15%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                st.markdown("---")
-
-                # Explanation of scores
-                st.markdown("### 📊 Score Breakdown Explained")
-
-                # Urgency explanation
+                # Calculate contributions
                 urgency_pct = (lead['urgency_score'] * 0.35)
                 value_pct = (lead['value_score'] * 0.30)
                 propensity_pct = (lead['propensity_score'] * 0.20)
                 strategic_pct = (lead['strategic_fit_score'] * 0.15)
 
-                st.markdown(f"""
-                **🔴 Urgency Score ({lead['urgency_score']:.0f}/100) → Contributes {urgency_pct:.1f} points**
-                - Time-sensitive factors: Equipment age, support expiry
-                - Days since EOL: **{lead['days_since_eol']} days**
-                - Risk Level: **{lead['risk_level']}**
-                - Why it matters: The longer you wait, the higher the operational risk
-                """)
+                # Compact 2-column layout for score cards
+                score_col1, score_col2 = st.columns(2)
 
-                st.markdown(f"""
-                **💰 Value Score ({lead['value_score']:.0f}/100) → Contributes {value_pct:.1f} points**
-                - Deal size estimate: **${lead['estimated_value_min']:,.0f} - ${lead['estimated_value_max']:,.0f}**
-                - Selected value: **${lead['estimated_value']:,.0f}**
-                - Why it matters: Larger deals deserve higher priority
-                """)
+                with score_col1:
+                    st.markdown(f"""
+                    <div style="padding: 0.75rem; background: #fef2f2; border-radius: 6px; border-left: 4px solid #dc2626; margin-bottom: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: #991b1b; font-weight: 600;">🔴 URGENCY (35%)</div>
+                                <div style="font-size: 0.875rem; color: #7f1d1d; margin-top: 0.25rem;">
+                                    {lead['days_since_eol']:,} days past EOL • {lead['risk_level']} risk
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #dc2626;">{lead['urgency_score']:.0f}</div>
+                                <div style="font-size: 0.75rem; color: #991b1b;">= {urgency_pct:.1f} pts</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                st.markdown(f"""
-                **🎯 Propensity Score ({lead['propensity_score']:.0f}/100) → Contributes {propensity_pct:.1f} points**
-                - Likelihood to close based on:
-                  - Active opportunities with this account
-                  - Historical project success
-                  - Customer engagement level
-                - Why it matters: Focus on customers who are likely to buy
-                """)
+                    st.markdown(f"""
+                    <div style="padding: 0.75rem; background: #dbeafe; border-radius: 6px; border-left: 4px solid #2563eb; margin-bottom: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: #1e40af; font-weight: 600;">🎯 PROPENSITY (20%)</div>
+                                <div style="font-size: 0.875rem; color: #1e3a8a; margin-top: 0.25rem;">
+                                    Likelihood to close
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #2563eb;">{lead['propensity_score']:.0f}</div>
+                                <div style="font-size: 0.75rem; color: #1e40af;">= {propensity_pct:.1f} pts</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
+                with score_col2:
+                    st.markdown(f"""
+                    <div style="padding: 0.75rem; background: #fef3c7; border-radius: 6px; border-left: 4px solid #d97706; margin-bottom: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: #92400e; font-weight: 600;">💰 VALUE (30%)</div>
+                                <div style="font-size: 0.875rem; color: #78350f; margin-top: 0.25rem;">
+                                    ${lead['estimated_value']:,.0f} opportunity
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #d97706;">{lead['value_score']:.0f}</div>
+                                <div style="font-size: 0.75rem; color: #92400e;">= {value_pct:.1f} pts</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(f"""
+                    <div style="padding: 0.75rem; background: #f0fdf4; border-radius: 6px; border-left: 4px solid #16a34a; margin-bottom: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: #15803d; font-weight: 600;">✨ STRATEGIC FIT (15%)</div>
+                                <div style="font-size: 0.875rem; color: #14532d; margin-top: 0.25rem;">
+                                    Alignment with priorities
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #16a34a;">{lead['strategic_fit_score']:.0f}</div>
+                                <div style="font-size: 0.75rem; color: #15803d;">= {strategic_pct:.1f} pts</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Total score - prominent display
                 st.markdown(f"""
-                **✨ Strategic Fit Score ({lead['strategic_fit_score']:.0f}/100) → Contributes {strategic_pct:.1f} points**
-                - Product family alignment with strategy
-                - Business area importance
-                - Territory focus
-                - Why it matters: Align sales efforts with company priorities
-                """)
+                <div style="padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; text-align: center; margin: 1rem 0;">
+                    <div style="font-size: 0.875rem; color: #e0e7ff; font-weight: 600; margin-bottom: 0.5rem;">TOTAL SCORE</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #ffffff;">{lead['score']:.1f}</div>
+                    <div style="font-size: 0.875rem; color: #e0e7ff; margin-top: 0.25rem;">{urgency_pct:.1f} + {value_pct:.1f} + {propensity_pct:.1f} + {strategic_pct:.1f}</div>
+                    <div style="font-size: 1rem; color: #ffffff; font-weight: 600; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e0e7ff;">Priority: {lead['priority']}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.markdown("---")
 
-                # Overall calculation
+                # Additional details - more compact
+                st.markdown("### 📋 Lead Details")
+
                 st.markdown(f"""
-                ### 🧮 Total Score Calculation
-
-                **Overall Score = {lead['score']:.1f}/100**
-
-                ```
-                ({lead['urgency_score']:.0f} × 0.35) + ({lead['value_score']:.0f} × 0.30) + ({lead['propensity_score']:.0f} × 0.20) + ({lead['strategic_fit_score']:.0f} × 0.15)
-                = {urgency_pct:.1f} + {value_pct:.1f} + {propensity_pct:.1f} + {strategic_pct:.1f}
-                = {lead['score']:.1f}
-                ```
-
-                **Priority Level: {lead['priority']}**
-                - Critical: 75-100
-                - High: 60-74
-                - Medium: 40-59
-                - Low: 0-39
-                """)
-
-                st.markdown("---")
-
-                # Additional details
-                st.markdown("### 📋 Additional Information")
-
-                detail_col1, detail_col2 = st.columns(2)
-
-                with detail_col1:
-                    st.markdown(f"""
-                    **Product Details:**
-                    - Product: {lead['product_description']}
-                    - Serial Number: {lead['serial_number']}
-                    - Lead Type: {lead_type_label}
-                    - Status: {lead['status']}
-                    """)
-
-                with detail_col2:
-                    st.markdown(f"""
-                    **Recommended Services:**
-                    - SKUs: {lead['recommended_skus'] if pd.notna(lead['recommended_skus']) else 'Contact sales engineering'}
-                    - Account: {lead['account_name']}
-                    - Territory: {lead['territory']}
-                    - Created: {created_date}
-                    """)
-
-                # Full description
-                st.markdown("**Complete Situation Description:**")
-                st.info(lead['description'])
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; font-size: 0.875rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div>
+                            <strong style="color: #475569;">🖥️ Product:</strong> {lead['product_description']}<br/>
+                            <strong style="color: #475569;">🔢 Serial:</strong> {lead['serial_number']}<br/>
+                            <strong style="color: #475569;">📦 Type:</strong> {lead_type_label}
+                        </div>
+                        <div>
+                            <strong style="color: #475569;">🏢 Account:</strong> {lead['account_name']}<br/>
+                            <strong style="color: #475569;">📍 Territory:</strong> {lead['territory']}<br/>
+                            <strong style="color: #475569;">📅 Created:</strong> {created_date}
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
+                        <strong style="color: #475569;">📄 Situation:</strong><br/>
+                        <span style="color: #64748b;">{lead['description']}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
             st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
 
