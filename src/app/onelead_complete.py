@@ -944,8 +944,64 @@ def main():
 
         if not df_ongoing.empty:
             filtered = df_ongoing[df_ongoing['priority'].isin(priorities)]
-            for _, project in filtered.iterrows():
-                render_ongoing_project(project, df_skus, df_services)
+
+            if len(filtered) == 0:
+                st.info("No ongoing projects match the selected filters.")
+            else:
+                # Add organization controls
+                col1, col2 = st.columns(2)
+                with col1:
+                    view_mode = st.radio(
+                        "Organize by:",
+                        ["Practice Area", "Project Size", "Priority"],
+                        horizontal=True,
+                        key="ongoing_view_mode"
+                    )
+                with col2:
+                    show_limit = st.selectbox(
+                        "Show per category:",
+                        [5, 10, 20, "All"],
+                        index=1,
+                        key="ongoing_limit"
+                    )
+
+                limit = None if show_limit == "All" else show_limit
+
+                # Organize by selected view mode
+                if view_mode == "Practice Area":
+                    # Group by practice
+                    for practice in filtered['practice'].unique():
+                        practice_projects = filtered[filtered['practice'] == practice]
+                        practice_label = practice if practice else "Other"
+
+                        with st.expander(f"📊 {practice_label} ({len(practice_projects)} projects)", expanded=(len(filtered['practice'].unique()) <= 3)):
+                            for _, project in practice_projects.head(limit).iterrows():
+                                render_ongoing_project(project, df_skus, df_services)
+
+                elif view_mode == "Project Size":
+                    # Define size order for sorting
+                    size_order = ['>$5M', '$1M-$5M', '$500k-$1M', '$50k-$500k', '<$50k', '-', None]
+
+                    # Group by size category
+                    for size in size_order:
+                        size_projects = filtered[filtered['size_category'] == size]
+                        if len(size_projects) > 0:
+                            size_label = size if size and size != '-' else "Unknown Size"
+
+                            with st.expander(f"💰 {size_label} ({len(size_projects)} projects)", expanded=(size in ['>$5M', '$1M-$5M'])):
+                                for _, project in size_projects.head(limit).iterrows():
+                                    render_ongoing_project(project, df_skus, df_services)
+
+                else:  # Priority
+                    # Group by priority
+                    for priority in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']:
+                        priority_projects = filtered[filtered['priority'] == priority]
+                        if len(priority_projects) > 0:
+                            priority_emoji = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡', 'LOW': '🟢'}
+
+                            with st.expander(f"{priority_emoji[priority]} {priority} Priority ({len(priority_projects)} projects)", expanded=(priority in ['CRITICAL', 'HIGH'])):
+                                for _, project in priority_projects.head(limit).iterrows():
+                                    render_ongoing_project(project, df_skus, df_services)
         else:
             st.info("No ongoing projects available.")
 
