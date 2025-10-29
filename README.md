@@ -104,12 +104,13 @@ Leads scored 0-100 based on:
 ## Documentation
 
 Comprehensive documentation is available:
+- **[QUICKSTART.md](QUICKSTART.md)** - Getting started guide
 - **[LAUNCH_PREMIUM.md](LAUNCH_PREMIUM.md)** - Premium Dashboard launch guide
 - **[PREMIUM_DASHBOARD.md](PREMIUM_DASHBOARD.md)** - Complete design philosophy and technical details
-- **[BUSINESS_DASHBOARD.md](BUSINESS_DASHBOARD.md)** - Business storytelling approach
-- **[QUICKSTART.md](QUICKSTART.md)** - Getting started guide
-- **[DATA_MAPPING.md](DATA_MAPPING.md)** - Excel to Database mapping (17,000+ words)
-- **[DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)** - Architecture and trade-offs
+- **[DATA_RELATIONSHIPS_ANALYSIS.md](DATA_RELATIONSHIPS_ANALYSIS.md)** - Complete data relationships & integration guide (49KB)
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and file structure
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Streamlit Cloud deployment guide
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference card
 
 ## Dashboard Comparison
 

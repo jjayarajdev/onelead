@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.models import InstallBase, Account, Lead, Opportunity
+from src.models import InstallBase, Account, Lead, Opportunity, Project
 from src.utils.config_loader import config
 
 
@@ -56,11 +56,11 @@ class LeadGenerator:
             if existing:
                 continue
 
-            # Estimate renewal value based on product family
-            estimated_min, estimated_max = self._estimate_renewal_value(
-                item.product_family or '',
-                item.product_name or ''
-            )
+            # Get actual data metrics for this account
+            project_size = self._get_project_size_category(item.account_id)
+            ib_count = self._get_install_base_count(item.account_id)
+            project_count = self._get_historical_project_count(item.account_id)
+            active_credits = self._get_active_credits(item.account_id)
 
             # Create renewal lead
             lead = Lead(
@@ -72,8 +72,12 @@ class LeadGenerator:
                            f"EOL Date: {item.product_eol_date or 'N/A'}.",
                 recommended_action=f"Contact account to renew support contract. "
                                  f"Product has been without support for {item.days_since_expiry or 0} days.",
-                estimated_value_min=estimated_min,
-                estimated_value_max=estimated_max,
+                estimated_value_min=None,  # No longer estimating values
+                estimated_value_max=None,  # No longer estimating values
+                project_size_category=project_size,
+                install_base_count=ib_count,
+                historical_project_count=project_count,
+                active_credits_available=active_credits,
                 account_id=item.account_id,
                 install_base_id=item.id,
                 territory_id=item.territory_id,
@@ -113,6 +117,12 @@ class LeadGenerator:
             gen_info = self._extract_generation(item.product_name)
             upgrade_msg = f" Consider upgrading to Gen{gen_info['next_gen']}." if gen_info else ""
 
+            # Get actual data metrics for this account
+            project_size = self._get_project_size_category(item.account_id)
+            ib_count = self._get_install_base_count(item.account_id)
+            project_count = self._get_historical_project_count(item.account_id)
+            active_credits = self._get_active_credits(item.account_id)
+
             lead = Lead(
                 lead_type='Hardware Refresh - EOL Equipment',
                 priority='CRITICAL',
@@ -121,8 +131,12 @@ class LeadGenerator:
                            f"{item.product_eol_date}. Equipment is {item.days_since_eol} days past EOL.",
                 recommended_action=f"Schedule hardware refresh discussion with account.{upgrade_msg} "
                                  f"Highlight risks of running unsupported hardware.",
-                estimated_value_min=75000,
-                estimated_value_max=200000,
+                estimated_value_min=None,  # No longer estimating values
+                estimated_value_max=None,  # No longer estimating values
+                project_size_category=project_size,
+                install_base_count=ib_count,
+                historical_project_count=project_count,
+                active_credits_available=active_credits,
                 account_id=item.account_id,
                 install_base_id=item.id,
                 territory_id=item.territory_id,
@@ -155,6 +169,12 @@ class LeadGenerator:
             if existing:
                 continue
 
+            # Get actual data metrics for this account
+            project_size = self._get_project_size_category(item.account_id)
+            ib_count = self._get_install_base_count(item.account_id)
+            project_count = self._get_historical_project_count(item.account_id)
+            active_credits = self._get_active_credits(item.account_id)
+
             lead = Lead(
                 lead_type='Service Attach - Coverage Gap',
                 priority='HIGH',
@@ -163,8 +183,12 @@ class LeadGenerator:
                            f"Status: {item.support_status}.",
                 recommended_action=f"Propose service contract to cover this equipment. "
                                  f"Emphasize risk mitigation and uptime benefits.",
-                estimated_value_min=10000,
-                estimated_value_max=50000,
+                estimated_value_min=None,  # No longer estimating values
+                estimated_value_max=None,  # No longer estimating values
+                project_size_category=project_size,
+                install_base_count=ib_count,
+                historical_project_count=project_count,
+                active_credits_available=active_credits,
                 account_id=item.account_id,
                 install_base_id=item.id,
                 territory_id=item.territory_id,
@@ -196,45 +220,69 @@ class LeadGenerator:
 
         return None
 
-    def _estimate_renewal_value(self, product_family: str, product_name: str = '') -> tuple:
-        """Estimate annual support value for a product based on product family.
+    def _get_project_size_category(self, account_id: int) -> Optional[str]:
+        """Get typical project size for this account based on historical A&PS data.
 
-        Returns (min_value, max_value) tuple for estimated annual support cost.
+        Returns project size category from A&PS PRJ Size field:
+        '<$50k', '$50k-$500k', '$500k-$1M', '$1M-$5M', '>$5M', or None
         """
-        if not product_family:
-            return (5000, 15000)  # Conservative default
+        try:
+            # Get account to find matching projects
+            account = self.session.query(Account).filter(Account.id == account_id).first()
+            if not account:
+                return None
 
-        # Product family benchmarks based on typical support contract values
-        benchmarks = {
-            'PROLIANT': (3000, 8000),      # Standard servers
-            'DL': (3000, 8000),             # DL series servers
-            'ML': (2500, 7000),             # ML series servers
-            'BL': (4000, 10000),            # Blade servers (higher complexity)
-            '3PAR': (15000, 40000),         # Storage arrays
-            'PRIMERA': (25000, 60000),      # High-end storage
-            'ALLETRA': (20000, 50000),      # Modern storage platform
-            'NIMBLE': (12000, 30000),       # Mid-range storage
-            'MSA': (5000, 15000),           # Entry-level storage
-            'STOREEASY': (8000, 20000),     # NAS solutions
-            'STOREONCE': (10000, 25000),    # Backup appliances
-            'SIMPLIVITY': (15000, 35000),   # Hyperconverged
-            'SYNERGY': (20000, 50000),      # Composable infrastructure
-            'APOLLO': (10000, 25000),       # HPC systems
-            'SUPERDOME': (40000, 100000),   # Mission-critical systems
-        }
+            # Query A&PS projects for this account
+            projects = self.session.query(Project).filter(
+                Project.account_id == account_id
+            ).all()
 
-        # Check product family first
-        product_family_upper = product_family.upper()
-        for family, (min_val, max_val) in benchmarks.items():
-            if family in product_family_upper:
-                return (min_val, max_val)
+            if not projects:
+                return None
 
-        # Check product name as fallback
-        if product_name:
-            product_name_upper = product_name.upper()
-            for family, (min_val, max_val) in benchmarks.items():
-                if family in product_name_upper:
-                    return (min_val, max_val)
+            # Get most common project size for this account (excluding '-' and None)
+            sizes = [p.size_category for p in projects if p.size_category and p.size_category != '-']
+            if not sizes:
+                return None
 
-        # Default for unknown products
-        return (5000, 15000)
+            # Return most frequent size
+            return max(set(sizes), key=sizes.count)
+        except Exception as e:
+            print(f"  Warning: Could not get project size category: {e}")
+            return None
+
+    def _get_install_base_count(self, account_id: int) -> Optional[int]:
+        """Get count of assets in install base for this account."""
+        try:
+            count = self.session.query(InstallBase).filter(
+                InstallBase.account_id == account_id
+            ).count()
+            return count if count > 0 else None
+        except Exception as e:
+            print(f"  Warning: Could not get install base count: {e}")
+            return None
+
+    def _get_historical_project_count(self, account_id: int) -> Optional[int]:
+        """Get count of historical A&PS projects for this account."""
+        try:
+            count = self.session.query(Project).filter(
+                Project.account_id == account_id
+            ).count()
+            return count if count > 0 else None
+        except Exception as e:
+            print(f"  Warning: Could not get historical project count: {e}")
+            return None
+
+    def _get_active_credits(self, account_id: int) -> Optional[int]:
+        """Get available service credits for this account.
+
+        NOTE: Service credits data is not yet loaded in the database.
+        This function will return None until the data is imported.
+        """
+        try:
+            # TODO: Implement once service credits data is loaded
+            # For now, return None (no credits data available)
+            return None
+        except Exception as e:
+            print(f"  Warning: Could not get active credits: {e}")
+            return None
