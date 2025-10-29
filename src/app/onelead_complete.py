@@ -1195,7 +1195,6 @@ def main():
         """)
 
         st.markdown("---")
-        st.markdown("**OneLead Complete** - Built with Claude Code | Data-Driven Intelligence Platform")
 
 
 if __name__ == "__main__":
