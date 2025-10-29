@@ -215,6 +215,72 @@ Comprehensive customer data export with **5 sheets**:
 
 ### Discovered Relationships
 
+```mermaid
+graph TB
+    subgraph IB["📦 INSTALL BASE<br/>(63 records, 10 accounts)"]
+        IB1["Account ST ID (PK)<br/>Product Name<br/>Business Area<br/>Support Status<br/>EOL/EOSL dates"]
+    end
+
+    subgraph OPP["🎯 OPPORTUNITY<br/>(98 records, 8 accounts)"]
+        OPP1["HPE Opportunity ID (PK)<br/>Account ST ID (FK)<br/>Product Line<br/>Format: OPE-XXXXXXXXXX"]
+    end
+
+    subgraph PROJ["🚀 A&PS PROJECT<br/>(2,394 records, 47% linked)"]
+        PROJ1["Project ID (PK)<br/>PRJ Siebel ID (FK)<br/>PRJ Practice<br/>PRJ Customer<br/>Project dates, status"]
+    end
+
+    subgraph SVC["📋 SERVICES CATALOG<br/>(286 services)"]
+        SVC1["Practice<br/>Sub-Practice<br/>Service Name<br/>Service Description"]
+    end
+
+    subgraph LSSKU["🔧 LS_SKU REFERENCE<br/>(138 mappings)"]
+        LSSKU1["32 Products<br/>6 Categories<br/>Service mappings<br/>HPE SKU codes"]
+    end
+
+    subgraph CREDITS["💳 SERVICE CREDITS<br/>(1,384 projects)"]
+        CREDITS1["650 purchased<br/>320 active<br/>Track consumption<br/>Expiry management"]
+    end
+
+    %% Relationships
+    IB1 -->|"① FK Link<br/>Account ST ID"| OPP1
+    OPP1 -->|"② FK Link (When WON)<br/>HPE Opportunity ID"| PROJ1
+    PROJ1 -->|"③ Practice Mapping<br/>PRJ Practice → Practice"| SVC1
+    PROJ1 -.->|"Track Credits<br/>Project-based"| CREDITS1
+
+    %% LS_SKU connections
+    IB1 -.->|"Keyword Match<br/>• Product name<br/>• Business area<br/>• Support status"| LSSKU1
+    OPP1 -.->|"Validate against<br/>• Historical delivery<br/>• Customer patterns"| LSSKU1
+    LSSKU1 -.->|"Generates<br/>• Service recommendations<br/>• SKU codes<br/>• Priority levels"| OPP1
+    LSSKU1 -.->|"Reference for<br/>practice expertise"| SVC1
+
+    %% Styling
+    classDef installBase fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
+    classDef opportunity fill:#fff4e1,stroke:#ff9900,stroke-width:2px
+    classDef project fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    classDef services fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef reference fill:#fff3e0,stroke:#ff6f00,stroke-width:2px
+    classDef credits fill:#e0f2f1,stroke:#009688,stroke-width:2px
+
+    class IB,IB1 installBase
+    class OPP,OPP1 opportunity
+    class PROJ,PROJ1 project
+    class SVC,SVC1 services
+    class LSSKU,LSSKU1 reference
+    class CREDITS,CREDITS1 credits
+```
+
+### Relationship Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| → | **Direct Foreign Key** (Strong relationship) |
+| -.-> | **Indirect/Logical** (Keyword matching, mapping) |
+| **①** | Install Base ↔ Opportunity (80% coverage) |
+| **②** | Opportunity → Project (47% linked when WON) |
+| **③** | Project → Services (Practice code mapping) |
+
+### ASCII Diagram (For Text-Only Viewing)
+
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    COMPLETE DATA INTEGRATION FLOW                    │
