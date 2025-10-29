@@ -887,8 +887,7 @@ def main():
     priorities = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
 
     # Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 All Opportunities",
+    tab1, tab2, tab3, tab4 = st.tabs([
         "📦 Install Base Assets",
         "🚀 Ongoing Projects",
         "✅ Completed Projects",
@@ -896,49 +895,83 @@ def main():
     ])
 
     with tab1:
-        st.markdown("### 🎯 All Opportunities (Filtered)")
-
-        total_shown = 0
-
-        # Install Base Assets
-        if 'Install Base' in categories and not df_install_base.empty:
-            filtered_ib = df_install_base[df_install_base['priority'].isin(priorities)]
-            st.markdown(f"#### 📦 Install Base Assets ({len(filtered_ib)})")
-            for _, item in filtered_ib.head(10).iterrows():
-                render_install_base_lead(item, df_skus, df_services)
-                total_shown += 1
-
-        # Ongoing Projects
-        if 'Ongoing Project' in categories and not df_ongoing.empty:
-            filtered_og = df_ongoing[df_ongoing['priority'].isin(priorities)]
-            st.markdown(f"#### 🚀 Ongoing Projects ({len(filtered_og)})")
-            for _, project in filtered_og.head(10).iterrows():
-                render_ongoing_project(project, df_skus, df_services)
-                total_shown += 1
-
-        # Completed Projects
-        if 'Completed Project' in categories and not df_completed.empty:
-            filtered_cp = df_completed[df_completed['priority'].isin(priorities)]
-            st.markdown(f"#### ✅ Completed Projects ({len(filtered_cp)})")
-            for _, project in filtered_cp.head(10).iterrows():
-                render_completed_project(project, df_skus, df_services)
-                total_shown += 1
-
-        if total_shown == 0:
-            st.info("No opportunities match the selected filters.")
-
-    with tab2:
         st.markdown(f"### 📦 Install Base Assets ({len(df_install_base)})")
         st.markdown("**Source:** Install Base table (direct from Excel) - hardware, support status, EOL dates")
 
         if not df_install_base.empty:
             filtered = df_install_base[df_install_base['priority'].isin(priorities)]
-            for _, item in filtered.iterrows():
-                render_install_base_lead(item, df_skus, df_services)
+
+            if len(filtered) == 0:
+                st.info("No install base assets match the selected filters.")
+            else:
+                # Add organization controls
+                col1, col2 = st.columns(2)
+                with col1:
+                    view_mode = st.radio(
+                        "Organize by:",
+                        ["Business Area", "Support Status", "Risk Level"],
+                        horizontal=True,
+                        key="ib_view_mode"
+                    )
+                with col2:
+                    show_limit = st.selectbox(
+                        "Show per category:",
+                        [5, 10, 20, "All"],
+                        index=1,
+                        key="ib_limit"
+                    )
+
+                limit = None if show_limit == "All" else show_limit
+
+                # Organize by selected view mode
+                if view_mode == "Business Area":
+                    # Group by business area
+                    for area in filtered['business_area'].unique():
+                        area_assets = filtered[filtered['business_area'] == area]
+                        area_label = area if area else "Other"
+
+                        with st.expander(f"🏢 {area_label} ({len(area_assets)} assets)", expanded=(len(filtered['business_area'].unique()) <= 3)):
+                            for _, item in area_assets.head(limit).iterrows():
+                                render_install_base_lead(item, df_skus, df_services)
+
+                elif view_mode == "Support Status":
+                    # Group by support status
+                    status_order = [
+                        'Warranty Expired - Uncovered Box',
+                        'Expired Flex Support',
+                        'Expired Fixed Support',
+                        'Active Warranty'
+                    ]
+
+                    for status in status_order:
+                        status_assets = filtered[filtered['support_status'].str.contains(status, na=False)]
+                        if len(status_assets) > 0:
+                            status_emoji = {
+                                'Warranty Expired': '🔴',
+                                'Expired Flex': '🟠',
+                                'Expired Fixed': '🟠',
+                                'Active': '🟢'
+                            }
+                            emoji = next((v for k, v in status_emoji.items() if k in status), '⚪')
+
+                            with st.expander(f"{emoji} {status} ({len(status_assets)} assets)", expanded=('Expired' in status or 'Uncovered' in status)):
+                                for _, item in status_assets.head(limit).iterrows():
+                                    render_install_base_lead(item, df_skus, df_services)
+
+                else:  # Risk Level
+                    # Group by risk level
+                    for risk in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']:
+                        risk_assets = filtered[filtered['risk_level'] == risk]
+                        if len(risk_assets) > 0:
+                            risk_emoji = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡', 'LOW': '🟢'}
+
+                            with st.expander(f"{risk_emoji[risk]} {risk} Risk ({len(risk_assets)} assets)", expanded=(risk in ['CRITICAL', 'HIGH'])):
+                                for _, item in risk_assets.head(limit).iterrows():
+                                    render_install_base_lead(item, df_skus, df_services)
         else:
             st.info("No install base assets available.")
 
-    with tab3:
+    with tab2:
         st.markdown(f"### 🚀 Ongoing Projects ({len(df_ongoing)})")
         st.markdown("**Source:** Projects table - active projects with end date > today")
 
@@ -1005,18 +1038,93 @@ def main():
         else:
             st.info("No ongoing projects available.")
 
-    with tab4:
+    with tab3:
         st.markdown(f"### ✅ Completed Projects ({len(df_completed)})")
         st.markdown("**Source:** Projects table - completed in last 2 years")
 
         if not df_completed.empty:
             filtered = df_completed[df_completed['priority'].isin(priorities)]
-            for _, project in filtered.iterrows():
-                render_completed_project(project, df_skus, df_services)
+
+            if len(filtered) == 0:
+                st.info("No completed projects match the selected filters.")
+            else:
+                # Add organization controls
+                col1, col2 = st.columns(2)
+                with col1:
+                    view_mode = st.radio(
+                        "Organize by:",
+                        ["Practice Area", "Project Size", "Completion Date"],
+                        horizontal=True,
+                        key="completed_view_mode"
+                    )
+                with col2:
+                    show_limit = st.selectbox(
+                        "Show per category:",
+                        [5, 10, 20, "All"],
+                        index=1,
+                        key="completed_limit"
+                    )
+
+                limit = None if show_limit == "All" else show_limit
+
+                # Organize by selected view mode
+                if view_mode == "Practice Area":
+                    # Group by practice
+                    for practice in filtered['practice'].unique():
+                        practice_projects = filtered[filtered['practice'] == practice]
+                        practice_label = practice if practice else "Other"
+
+                        with st.expander(f"📊 {practice_label} ({len(practice_projects)} projects)", expanded=(len(filtered['practice'].unique()) <= 3)):
+                            for _, project in practice_projects.head(limit).iterrows():
+                                render_completed_project(project, df_skus, df_services)
+
+                elif view_mode == "Project Size":
+                    # Define size order for sorting
+                    size_order = ['>$5M', '$1M-$5M', '$500k-$1M', '$50k-$500k', '<$50k', '-', None]
+
+                    # Group by size category
+                    for size in size_order:
+                        size_projects = filtered[filtered['size_category'] == size]
+                        if len(size_projects) > 0:
+                            size_label = size if size and size != '-' else "Unknown Size"
+
+                            with st.expander(f"💰 {size_label} ({len(size_projects)} projects)", expanded=(size in ['>$5M', '$1M-$5M'])):
+                                for _, project in size_projects.head(limit).iterrows():
+                                    render_completed_project(project, df_skus, df_services)
+
+                else:  # Completion Date
+                    # Group by completion timeframe
+                    from datetime import datetime, timedelta
+                    today = datetime.now().date()
+
+                    timeframes = [
+                        ("Last 3 months", 90),
+                        ("3-6 months ago", 180),
+                        ("6-12 months ago", 365),
+                        ("1-2 years ago", 730)
+                    ]
+
+                    for label, days in timeframes:
+                        start_date = today - timedelta(days=days)
+                        if days == 90:
+                            end_date = today
+                        else:
+                            prev_days = [d for l, d in timeframes if d < days]
+                            end_date = today - timedelta(days=prev_days[-1]) if prev_days else today
+
+                        timeframe_projects = filtered[
+                            (pd.to_datetime(filtered['end_date']).dt.date >= start_date) &
+                            (pd.to_datetime(filtered['end_date']).dt.date < end_date)
+                        ]
+
+                        if len(timeframe_projects) > 0:
+                            with st.expander(f"📅 {label} ({len(timeframe_projects)} projects)", expanded=(days == 90)):
+                                for _, project in timeframe_projects.head(limit).iterrows():
+                                    render_completed_project(project, df_skus, df_services)
         else:
             st.info("No completed projects available.")
 
-    with tab5:
+    with tab4:
         st.markdown("### ℹ️ About OneLead Complete")
 
         st.markdown("""
