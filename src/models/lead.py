@@ -27,8 +27,14 @@ class Lead(Base):
     title = Column(String, nullable=False)
     description = Column(Text)
     recommended_action = Column(Text)
-    estimated_value_min = Column(Float)
-    estimated_value_max = Column(Float)
+    estimated_value_min = Column(Float)  # Deprecated - always None (kept for backward compatibility)
+    estimated_value_max = Column(Float)  # Deprecated - always None (kept for backward compatibility)
+
+    # Actual data metrics (NEW - from Excel data only)
+    project_size_category = Column(String(50), nullable=True)  # From A&PS PRJ Size field
+    install_base_count = Column(Integer, nullable=True)  # Count of assets for this account
+    historical_project_count = Column(Integer, nullable=True)  # Past projects completed
+    active_credits_available = Column(Integer, nullable=True)  # Service credits available
 
     # Foreign keys
     account_id = Column(Integer, ForeignKey('accounts.id'), index=True, nullable=False)

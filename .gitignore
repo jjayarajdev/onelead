@@ -137,8 +137,11 @@ dmypy.json
 # Data files - DO NOT commit sensitive data
 data/raw/*.db
 data/raw/*.csv
-data/raw/*.xlsx
+# data/raw/*.xlsx  # Commented out - we need Excel files for the app
 data/raw/*.json
+
+# EXCEPTION: Allow Excel files in data folder for Streamlit Cloud
+!data/*.xlsx
 
 # Processed data cache
 data/processed/*.pkl
@@ -268,6 +271,9 @@ node_modules/
 *.sqlite
 *.h5
 *.pkl
+
+# EXCEPTION: Allow the main database for Streamlit Cloud deployment
+!database/onelead.db
 
 # Model files
 # models/  # Commented out - we need src/models Python files

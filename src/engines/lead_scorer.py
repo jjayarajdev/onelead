@@ -5,11 +5,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import sys
 from pathlib import Path
+import logging
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models import Lead, InstallBase, Account, Opportunity, Project
 from src.utils.config_loader import config
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 
 class LeadScorer:
@@ -21,11 +25,12 @@ class LeadScorer:
         self.config = config
 
         # Get scoring weights from config
+        # Note: Adjusted weights to emphasize urgency and engagement over value estimates
         self.weights = {
-            'urgency': config.get('scoring_weights.urgency', 0.35),
-            'value': config.get('scoring_weights.value', 0.30),
-            'propensity': config.get('scoring_weights.propensity', 0.20),
-            'strategic_fit': config.get('scoring_weights.strategic_fit', 0.15)
+            'urgency': config.get('scoring_weights.urgency', 0.40),  # Increased - based on actual dates
+            'value': config.get('scoring_weights.value', 0.30),  # Based on actual project history
+            'propensity': config.get('scoring_weights.propensity', 0.20),  # Based on actual engagement
+            'strategic_fit': config.get('scoring_weights.strategic_fit', 0.10)  # Decreased slightly
         }
 
     def score_all_leads(self) -> int:
@@ -62,6 +67,16 @@ class LeadScorer:
             strategic_fit_score * self.weights['strategic_fit']
         )
 
+        # Log detailed scoring breakdown
+        logger.info(f"Lead ID {lead.id} scoring breakdown:")
+        logger.info(f"  Title: {lead.title}")
+        logger.info(f"  Type: {lead.lead_type}")
+        logger.info(f"  Urgency: {urgency_score:.1f} (weight {self.weights['urgency']}) = {urgency_score * self.weights['urgency']:.1f}")
+        logger.info(f"  Value: {value_score:.1f} (weight {self.weights['value']}) = {value_score * self.weights['value']:.1f}")
+        logger.info(f"  Propensity: {propensity_score:.1f} (weight {self.weights['propensity']}) = {propensity_score * self.weights['propensity']:.1f}")
+        logger.info(f"  Strategic: {strategic_fit_score:.1f} (weight {self.weights['strategic_fit']}) = {strategic_fit_score * self.weights['strategic_fit']:.1f}")
+        logger.info(f"  TOTAL: {overall_score:.1f}")
+
         # Update lead
         lead.urgency_score = urgency_score
         lead.value_score = value_score
@@ -78,6 +93,9 @@ class LeadScorer:
             lead.priority = 'MEDIUM'
         else:
             lead.priority = 'LOW'
+
+        logger.info(f"  Priority: {lead.priority}")
+        logger.info("")  # Blank line for readability
 
         return overall_score
 
@@ -114,32 +132,47 @@ class LeadScorer:
         return min(score, 100.0)
 
     def _calculate_value_score(self, lead: Lead) -> float:
-        """Calculate value score (0-100) based on deal size and install base."""
-        score = 40.0  # Base score
+        """Calculate value score (0-100) based on ACTUAL data: historical project size,
+        install base count, project history, and service credits."""
+        score = 50.0  # Base score
 
-        # Factor 1: Estimated deal value
-        if lead.estimated_value_max:
-            if lead.estimated_value_max >= 200000:
-                score += 40
-            elif lead.estimated_value_max >= 100000:
-                score += 30
-            elif lead.estimated_value_max >= 50000:
+        # Factor 1: Historical project size category (from A&PS data)
+        if lead.project_size_category:
+            size_scores = {
+                '<$50k': 60,
+                '$50k-$500k': 70,
+                '$500k-$1M': 80,
+                '$1M-$5M': 90,
+                '>$5M': 100
+            }
+            score = size_scores.get(lead.project_size_category, 50)
+
+        # Factor 2: Install base size (actual asset count)
+        if lead.install_base_count:
+            if lead.install_base_count > 50:
                 score += 20
-            else:
+            elif lead.install_base_count > 20:
                 score += 10
+            elif lead.install_base_count > 10:
+                score += 5
 
-        # Factor 2: Account install base size
-        if lead.account_id:
-            account_ib_count = self.session.query(func.count(InstallBase.id)).filter(
-                InstallBase.account_id == lead.account_id
-            ).scalar()
-
-            if account_ib_count > 50:
-                score += 20
-            elif account_ib_count > 20:
+        # Factor 3: Historical project count (shows account engagement)
+        if lead.historical_project_count:
+            if lead.historical_project_count > 10:
                 score += 15
-            elif account_ib_count > 5:
+            elif lead.historical_project_count > 5:
                 score += 10
+            elif lead.historical_project_count > 0:
+                score += 5
+
+        # Factor 4: Active service credits (shows available budget)
+        if lead.active_credits_available:
+            if lead.active_credits_available > 100:
+                score += 15
+            elif lead.active_credits_available > 50:
+                score += 10
+            elif lead.active_credits_available > 0:
+                score += 5
 
         return min(score, 100.0)
 

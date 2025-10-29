@@ -1,7 +1,21 @@
 """Script to generate and score leads."""
 
+import logging
+from datetime import datetime
 from src.models import SessionLocal
 from src.engines import LeadGenerator, ServiceRecommender, LeadScorer
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(f'lead_scoring_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     print("=" * 60)
