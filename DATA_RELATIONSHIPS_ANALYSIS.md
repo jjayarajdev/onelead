@@ -279,54 +279,6 @@ graph TB
 | **②** | Opportunity → Project (47% linked when WON) |
 | **③** | Project → Services (Practice code mapping) |
 
-### ASCII Diagram (For Text-Only Viewing)
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    COMPLETE DATA INTEGRATION FLOW                    │
-└──────────────────────────────────────────────────────────────────────┘
-
-1. INSTALL BASE                         LS_SKU REFERENCE TABLE
-   ─────────────────                    ────────────────────────
-   Account ST ID (PK)        ┌────────> 32 Products
-   Product Name              │          6 Categories
-   Business Area             │          138 Service mappings
-   Support Status            │          HPE SKU codes
-   EOL/EOSL dates           │
-                            │
-        │                   │ Mapping via:
-        │ ① FK Link         │ • Product keywords
-        ↓                   │ • Business area
-                           │ • Support status
-2. OPPORTUNITY              │
-   ─────────────────       │          Generates:
-   Account ST ID (FK) ─────┘          • Service recommendations
-   HPE Opportunity ID (PK)             • SKU codes for quotes
-   Product Line                        • Priority suggestions
-   Format: OPE-XXXXXXXXXX
-                                      Validates against:
-        │ ② FK Link                    • Historical delivery
-        │ When WON...                  • Customer patterns
-        ↓                              • Practice expertise
-                                              │
-3. A&PS PROJECT                               │
-   ─────────────────                          │
-   Project ID (PK)                            │
-   PRJ Siebel ID (FK) ────────────────────────┘
-   = HPE Opportunity ID
-   PRJ Practice
-   PRJ Customer
-   Project dates, status
-
-        │ ③ Practice Mapping
-        ↓
-
-4. SERVICES CATALOG
-   ─────────────────
-   Practice → Sub-Practice → Service
-   Reference for recommendations
-```
-
 ---
 
 ## 📊 Detailed Relationship Analysis
