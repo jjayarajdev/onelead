@@ -253,13 +253,13 @@ graph TB
     LSSKU1 -.->|"Generates<br/>• Service recommendations<br/>• SKU codes<br/>• Priority levels"| OPP1
     LSSKU1 -.->|"Reference for<br/>practice expertise"| SVC1
 
-    %% Styling
-    classDef installBase fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
-    classDef opportunity fill:#fff4e1,stroke:#ff9900,stroke-width:2px
-    classDef project fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
-    classDef services fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
-    classDef reference fill:#fff3e0,stroke:#ff6f00,stroke-width:2px
-    classDef credits fill:#e0f2f1,stroke:#009688,stroke-width:2px
+    %% Styling - Dark backgrounds with high contrast text
+    classDef installBase fill:#0066cc,stroke:#004499,stroke-width:3px,color:#fff
+    classDef opportunity fill:#ff9900,stroke:#cc7700,stroke-width:3px,color:#000
+    classDef project fill:#4caf50,stroke:#388e3c,stroke-width:3px,color:#fff
+    classDef services fill:#9c27b0,stroke:#7b1fa2,stroke-width:3px,color:#fff
+    classDef reference fill:#ff6f00,stroke:#e65100,stroke-width:3px,color:#fff
+    classDef credits fill:#009688,stroke:#00796b,stroke-width:3px,color:#fff
 
     class IB,IB1 installBase
     class OPP,OPP1 opportunity
