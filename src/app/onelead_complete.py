@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import sys
 from pathlib import Path
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_, or_, desc
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
