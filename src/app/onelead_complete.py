@@ -1023,50 +1023,6 @@ def render_completed_project(project, df_skus, df_services):
             st.write("• New initiative discovery")
 
     with st.expander("🎯 Re-engagement Services"):
-        # Get account history
-        history = get_account_practice_history(project.get('account_id'))
-
-        if history and history.get('total_projects', 0) > 0:
-            practice_info = history['practices'].get(project['practice'], {})
-            confidence_pct = practice_info.get('percentage', 0)
-
-            # Confidence indicator
-            if confidence_pct >= 50:
-                confidence_badge = "🟢 High Confidence"
-                confidence_color = "#4caf50"
-            elif confidence_pct >= 25:
-                confidence_badge = "🟡 Medium Confidence"
-                confidence_color = "#ff9800"
-            else:
-                confidence_badge = "🔵 Exploratory"
-                confidence_color = "#2196f3"
-
-            st.markdown(f"""
-            <div style="background: linear-gradient(90deg, #e8f5e9 0%, #ffffff 100%);
-                        padding: 1rem 1.5rem;
-                        margin-bottom: 1rem;
-                        border-radius: 8px;
-                        border-left: 4px solid {confidence_color};">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong style="font-size: 1rem;">📊 Account Intelligence</strong>
-                        <div style="color: #666; font-size: 0.9rem; margin-top: 0.3rem;">
-                            {history['total_projects']} total projects |
-                            {practice_info.get('count', 0)} in {project['practice']} practice
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="background: {confidence_color}; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
-                            {confidence_badge}
-                        </span>
-                        <div style="font-size: 1.2rem; font-weight: 700; color: {confidence_color}; margin-top: 0.3rem;">
-                            {confidence_pct:.1f}%
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
         # Get intelligent services based on practice area and project description
         practice_services = get_practice_services(
             project['practice'] or '',
@@ -1885,24 +1841,6 @@ def main():
                 All data sources link to the same Account record.
                 """)
 
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-
-        # Documentation
-        st.markdown("### 📚 Detailed Documentation")
-
-        st.markdown("""
-        All findings are comprehensively documented in the following markdown files:
-
-        - **ST_ID_DISCOVERY_SUMMARY.md** - ST ID relationship breakthrough (47% → 100% coverage)
-        - **PRODUCT_LINE_COMPLETE_MAPPING.md** - Product Line ecosystem mapping (20 unique product lines)
-        - **SERVICES_LSSKU_MAPPING.md** - Services ↔ LS_SKU connections (80.4% match rate)
-        - **PROJECT_COLUMNS_MAPPING.md** - PRJ Practice/Business Area intelligence
-        - **FUZZY_LOGIC_USAGE.md** - Account normalization implementation details
-        - **DATA_RELATIONSHIPS_ANALYSIS.md** - Complete data model documentation (v2.0)
-
-        These discoveries enable OneLead to provide **intelligent, data-driven service recommendations**
-        with confidence scores based on complete customer history.
-        """)
 
     with tab5:
         st.markdown("### ℹ️ About OneLead Complete")
@@ -2119,29 +2057,6 @@ def main():
         - Maps project types to advisory and professional services
 
         **Practices:** Hybrid Cloud Consulting, Hybrid Cloud Engineering, Data AI & IOT
-
-        ---
-
-        ## ✅ Core Principle: "All Data, No Estimates"
-
-        **Every number in OneLead Complete comes from actual Excel data:**
-
-        ✅ **We DO use:**
-        - Actual project end dates
-        - Real install base counts
-        - Historical project sizes from A&PS data
-        - Actual service SKU codes from LS_SKU table
-        - Real practice areas from completed projects
-        - Actual support status and EOL dates
-
-        ❌ **We DON'T use:**
-        - Estimated opportunity values
-        - Projected revenue numbers
-        - Made-up service recommendations
-        - Fake customer propensity scores
-        - Synthetic engagement metrics
-
-        **Result:** 100% trustworthy intelligence for sales and delivery teams
         """)
 
         st.markdown("---")
