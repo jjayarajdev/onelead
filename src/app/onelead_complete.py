@@ -2142,15 +2142,6 @@ def main():
         - Synthetic engagement metrics
 
         **Result:** 100% trustworthy intelligence for sales and delivery teams
-
-        ---
-
-        ## 📞 Questions?
-
-        For more information about data relationships and integration patterns:
-        - Review: DATA_RELATIONSHIPS_ANALYSIS.md
-        - Review: SERVICE_RECOMMENDATION_STRATEGY.md
-        - Check: /data/ folder for source Excel files
         """)
 
         st.markdown("---")
