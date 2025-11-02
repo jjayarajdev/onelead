@@ -742,17 +742,79 @@ def render_install_base_lead(item, df_skus, df_services):
         )
 
         if services:
-            st.markdown("**Recommended services from Services sheet:**")
+            st.markdown(f"**💼 {len(services)} Recommended Services for {item['business_area']}**")
+            st.caption("Intelligent recommendations based on hardware type and historical delivery patterns")
+
+            # Group services by practice for better organization
+            from collections import defaultdict
+            services_by_practice = defaultdict(list)
             for svc in services:
+                practice = svc['practice'] if svc['practice'] != 'General Services' else 'Infrastructure Services'
+                services_by_practice[practice].append(svc)
+
+            # Display services grouped by practice
+            for idx, (practice, practice_services) in enumerate(services_by_practice.items(), 1):
+                # Practice header with icon
+                practice_icons = {
+                    'Hybrid Cloud Consulting': '☁️',
+                    'Hybrid Cloud Engineering': '⚙️',
+                    'Data, AI & IOT': '🤖',
+                    'Infrastructure Services': '🏗️'
+                }
+                icon = practice_icons.get(practice, '📋')
+
                 st.markdown(f"""
-                <div class="recommendation-box">
-                    <strong>{svc['service']}</strong><br>
-                    <em>Practice:</em> {svc['practice']} | <em>Sub-Practice:</em> {svc['sub_practice']}
+                <div style="background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+                            padding: 0.5rem 1rem;
+                            margin: 1rem 0 0.5rem 0;
+                            border-radius: 8px;
+                            border-left: 4px solid #01A982;">
+                    <strong style="font-size: 1rem; color: #333;">{icon} {practice}</strong>
+                    <span style="color: #666; font-size: 0.85rem; margin-left: 0.5rem;">
+                        ({len(practice_services)} services)
+                    </span>
                 </div>
                 """, unsafe_allow_html=True)
+
+                # Display services in this practice
+                for svc_idx, svc in enumerate(practice_services, 1):
+                    # Color alternate services for better readability
+                    bg_color = '#ffffff' if svc_idx % 2 == 0 else '#f8f9fa'
+
+                    st.markdown(f"""
+                    <div style="background: {bg_color};
+                                padding: 1rem 1.5rem;
+                                margin: 0.25rem 0;
+                                border-radius: 6px;
+                                border-left: 3px solid #01A982;
+                                transition: all 0.2s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 1rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.3rem;">
+                                    {svc['service']}
+                                </div>
+                                <div style="font-size: 0.85rem; color: #666;">
+                                    <span style="background: #e3f2fd; padding: 0.2rem 0.5rem; border-radius: 4px; margin-right: 0.5rem;">
+                                        📁 {svc['sub_practice']}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: #01A982;
+                                             color: white;
+                                             padding: 0.3rem 0.8rem;
+                                             border-radius: 15px;
+                                             font-size: 0.75rem;
+                                             font-weight: 600;">
+                                    #{svc_idx}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
         else:
             # Fallback to LS_SKU if no Services sheet match
-            st.markdown("**Services from LS_SKU mapping:**")
+            st.markdown("**💡 Services from Product-SKU Mapping**")
             sku_recommendations = get_service_recommendations(
                 item['product_family'] or '',
                 item['business_area'] or '',
@@ -760,10 +822,20 @@ def render_install_base_lead(item, df_skus, df_services):
             )
 
             if sku_recommendations:
-                for rec in sku_recommendations[:5]:
+                for idx, rec in enumerate(sku_recommendations[:5], 1):
                     st.markdown(f"""
-                    <div class="recommendation-box">
-                        • {rec['service']} <span class="service-sku">SKU: {rec['sku']}</span>
+                    <div style="background: #f8f9fa;
+                                padding: 1rem 1.5rem;
+                                margin: 0.5rem 0;
+                                border-radius: 6px;
+                                border-left: 3px solid #667eea;">
+                        <div style="font-size: 1rem; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                            {idx}. {rec['service']}
+                        </div>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span class="service-sku">SKU: {rec['sku']}</span>
+                            <span style="color: #666; font-size: 0.85rem;">Product: {rec['product']}</span>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
             else:
@@ -828,19 +900,57 @@ def render_ongoing_project(project, df_skus, df_services):
             st.write("• Phase 2 planning")
 
     with st.expander("🎯 Service Recommendations"):
-        st.markdown("### Available HPE Services (from Services Catalog)")
-
         # Get services based on practice area
         practice_services = get_practice_services(project['practice'] or '', df_services)
 
         if practice_services:
-            for rec in practice_services:
+            st.markdown(f"**💼 Top {len(practice_services)} Services for {project['practice']}**")
+            st.caption("Curated from Services catalog based on practice alignment and relevance")
+
+            # Group services by practice
+            from collections import defaultdict
+            services_by_practice = defaultdict(list)
+            for svc in practice_services:
+                services_by_practice[svc['practice']].append(svc)
+
+            # Display services
+            for practice, services in services_by_practice.items():
+                practice_icons = {
+                    'Hybrid Cloud Consulting': '☁️',
+                    'Hybrid Cloud Engineering': '⚙️',
+                    'Data, AI & IOT': '🤖'
+                }
+                icon = practice_icons.get(practice, '📋')
+
                 st.markdown(f"""
-                <div class="recommendation-box">
-                    <strong>{rec['service']}</strong><br>
-                    <em>Practice:</em> {rec['practice']} | <em>Sub-Practice:</em> {rec['sub_practice'] or 'General'}
+                <div style="background: linear-gradient(90deg, #e3f2fd 0%, #ffffff 100%);
+                            padding: 0.5rem 1rem;
+                            margin: 0.5rem 0;
+                            border-radius: 8px;
+                            border-left: 4px solid #4facfe;">
+                    <strong>{icon} {practice}</strong>
+                    <span style="color: #666; font-size: 0.85rem; margin-left: 0.5rem;">({len(services)} services)</span>
                 </div>
                 """, unsafe_allow_html=True)
+
+                for idx, svc in enumerate(services, 1):
+                    bg_color = '#ffffff' if idx % 2 == 0 else '#f8f9fa'
+                    st.markdown(f"""
+                    <div style="background: {bg_color};
+                                padding: 0.8rem 1.2rem;
+                                margin: 0.25rem 0;
+                                border-radius: 6px;
+                                border-left: 3px solid #4facfe;">
+                        <div style="font-size: 0.95rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem;">
+                            {idx}. {svc['service']}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666;">
+                            <span style="background: #e8f5e9; padding: 0.2rem 0.4rem; border-radius: 3px;">
+                                📁 {svc['sub_practice'] or 'General'}
+                            </span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
         else:
             st.info("💡 Contact sales team for available services based on project practice area: " + (project['practice'] or 'Unknown'))
             st.markdown("**Note:** Service recommendations are based on actual Services sheet data.")
@@ -913,16 +1023,49 @@ def render_completed_project(project, df_skus, df_services):
             st.write("• New initiative discovery")
 
     with st.expander("🎯 Re-engagement Services"):
-        st.markdown("### Intelligent Service Recommendations")
-
         # Get account history
         history = get_account_practice_history(project.get('account_id'))
 
         if history and history.get('total_projects', 0) > 0:
             practice_info = history['practices'].get(project['practice'], {})
-            st.info(f"📊 **Account History**: {history['total_projects']} total projects | "
-                   f"{practice_info.get('count', 0)} in {project['practice']} practice "
-                   f"({practice_info.get('percentage', 0):.1f}%)")
+            confidence_pct = practice_info.get('percentage', 0)
+
+            # Confidence indicator
+            if confidence_pct >= 50:
+                confidence_badge = "🟢 High Confidence"
+                confidence_color = "#4caf50"
+            elif confidence_pct >= 25:
+                confidence_badge = "🟡 Medium Confidence"
+                confidence_color = "#ff9800"
+            else:
+                confidence_badge = "🔵 Exploratory"
+                confidence_color = "#2196f3"
+
+            st.markdown(f"""
+            <div style="background: linear-gradient(90deg, #e8f5e9 0%, #ffffff 100%);
+                        padding: 1rem 1.5rem;
+                        margin-bottom: 1rem;
+                        border-radius: 8px;
+                        border-left: 4px solid {confidence_color};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 1rem;">📊 Account Intelligence</strong>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 0.3rem;">
+                            {history['total_projects']} total projects |
+                            {practice_info.get('count', 0)} in {project['practice']} practice
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: {confidence_color}; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                            {confidence_badge}
+                        </span>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: {confidence_color}; margin-top: 0.3rem;">
+                            {confidence_pct:.1f}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
         # Get intelligent services based on practice area and project description
         practice_services = get_practice_services(
@@ -933,14 +1076,53 @@ def render_completed_project(project, df_skus, df_services):
         )
 
         if practice_services:
-            st.caption(f"Top 5 services for {project['practice']} practice, filtered by project relevance")
-            for rec in practice_services:
+            st.markdown(f"**💼 Top {len(practice_services)} Services for {project['practice']}**")
+            st.caption("Intelligent recommendations filtered by project context and historical patterns")
+
+            # Group services by practice
+            from collections import defaultdict
+            services_by_practice = defaultdict(list)
+            for svc in practice_services:
+                services_by_practice[svc['practice']].append(svc)
+
+            # Display services
+            for practice, services in services_by_practice.items():
+                practice_icons = {
+                    'Hybrid Cloud Consulting': '☁️',
+                    'Hybrid Cloud Engineering': '⚙️',
+                    'Data, AI & IOT': '🤖'
+                }
+                icon = practice_icons.get(practice, '📋')
+
                 st.markdown(f"""
-                <div class="recommendation-box">
-                    <strong>{rec['service']}</strong><br>
-                    <em>Practice:</em> {rec['practice']} | <em>Sub-Practice:</em> {rec['sub_practice'] or 'General'}
+                <div style="background: linear-gradient(90deg, #fff3e0 0%, #ffffff 100%);
+                            padding: 0.5rem 1rem;
+                            margin: 0.5rem 0;
+                            border-radius: 8px;
+                            border-left: 4px solid #43e97b;">
+                    <strong>{icon} {practice}</strong>
+                    <span style="color: #666; font-size: 0.85rem; margin-left: 0.5rem;">({len(services)} services)</span>
                 </div>
                 """, unsafe_allow_html=True)
+
+                for idx, svc in enumerate(services, 1):
+                    bg_color = '#ffffff' if idx % 2 == 0 else '#fafafa'
+                    st.markdown(f"""
+                    <div style="background: {bg_color};
+                                padding: 0.8rem 1.2rem;
+                                margin: 0.25rem 0;
+                                border-radius: 6px;
+                                border-left: 3px solid #43e97b;">
+                        <div style="font-size: 0.95rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem;">
+                            {idx}. {svc['service']}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666;">
+                            <span style="background: #ffe0b2; padding: 0.2rem 0.4rem; border-radius: 3px;">
+                                📁 {svc['sub_practice'] or 'General'}
+                            </span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
         else:
             st.info("💡 Contact sales team for available services based on project practice area: " + (project['practice'] or 'Unknown'))
             st.markdown("**Note:** Service recommendations are based on actual Services sheet data. No services found for this practice area in the current catalog.")
