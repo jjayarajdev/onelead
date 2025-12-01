@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models import (
     init_db, SessionLocal, Account, InstallBase, Opportunity,
-    Project, ServiceCatalog, ServiceSKUMapping
+    Project, ServiceCatalog, ServiceSKUMapping, ServiceCredit
 )
 from src.utils.config_loader import config
 from src.utils.account_normalizer import AccountNormalizer
@@ -49,6 +49,9 @@ class DataLoader:
 
             print("Loading service SKU mappings...")
             self._load_service_sku_mappings(session)
+
+            print("Loading service credits...")
+            self._load_service_credits(session)
 
             session.commit()
             print("✓ All data loaded successfully!")
@@ -270,7 +273,7 @@ class DataLoader:
         if not file_path.exists():
             return
 
-        df = pd.read_excel(file_path, sheet_name='A&PS Project sample')
+        df = pd.read_excel(file_path, sheet_name='A&amp;PS Project sample')
 
         loaded_count = 0
         for idx, row in df.iterrows():
@@ -285,11 +288,14 @@ class DataLoader:
                 # Generate unique ID for missing/invalid project IDs
                 project_id = f"UNKNOWN_PRJ_{idx}"
 
-            # Get or create account
+            # USE ST ID field to link to accounts (CRITICAL FIX)
+            st_id = str(row.get('ST ID'))
+
+            # Get or create account using ST ID
             account = self._get_or_create_account(
                 session,
                 account_name=str(row.get('PRJ Customer')),
-                territory_id=None,
+                territory_id=st_id if pd.notna(row.get('ST ID')) else None,
                 account_id=str(row.get('PRJ Customer ID'))
             )
 
@@ -433,6 +439,38 @@ class DataLoader:
             )
 
         return None
+
+    def _load_service_credits(self, session):
+        """Load service credits data."""
+        file_path = Path(self.config.install_base_path)
+        if not file_path.exists():
+            print(f"Warning: Service credits file not found: {file_path}")
+            return
+
+        df = pd.read_excel(file_path, sheet_name='Service Credits')
+
+        loaded_count = 0
+        for idx, row in df.iterrows():
+            # Parse contract end date
+            contract_end = self._parse_date(row.get('ContractEndDate'))
+
+            service_credit = ServiceCredit(
+                project_id=str(row.get('ProjectID')),
+                project_name=str(row.get('ProjectName')),
+                practice_name=str(row.get('PracticeName')),
+                purchased_credits=int(row.get('PurchasedCredits')) if pd.notna(row.get('PurchasedCredits')) else 0,
+                converted_credits=int(row.get('ConvertedCredits')) if pd.notna(row.get('ConvertedCredits')) else 0,
+                delivered_credits=int(row.get('DeliveredCredits')) if pd.notna(row.get('DeliveredCredits')) else 0,
+                converted_not_delivered_credits=int(row.get('ConvertedNotDeliveredCredits')) if pd.notna(row.get('ConvertedNotDeliveredCredits')) else 0,
+                active_credits=int(row.get('ActiveCredits')) if pd.notna(row.get('ActiveCredits')) else 0,
+                expiry_in_days=str(row.get('ExpiryInDays')),
+                contract_end_date=contract_end,
+                territory_id=str(row.get('ST ID')) if pd.notna(row.get('ST ID')) else None
+            )
+            session.add(service_credit)
+            loaded_count += 1
+
+        print(f"  → Loaded {loaded_count} service credit records")
 
 
 if __name__ == "__main__":

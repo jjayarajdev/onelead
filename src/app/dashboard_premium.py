@@ -580,25 +580,76 @@ def render_header(stats):
     """, unsafe_allow_html=True)
 
 
-def render_metrics(leads_df, stats):
-    """Render key metrics cards."""
+def render_account_filter(leads_df):
+    """Render the account filter at the top of the page. Returns filtered dataframe."""
+    st.markdown("""
+    <div style="background: #f8fafc; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0;">
+        <div style="font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">Filter by Account</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get unique accounts sorted alphabetically
+    account_names = ["All Accounts"] + sorted(leads_df['account_name'].unique().tolist())
+
+    col1, col2, col3 = st.columns([2, 2, 4])
+    with col1:
+        selected_account = st.selectbox(
+            "Select Account",
+            account_names,
+            key="main_account_filter",
+            label_visibility="collapsed"
+        )
+
+    # Apply filter
+    if selected_account != "All Accounts":
+        filtered_df = leads_df[leads_df['account_name'] == selected_account].copy()
+        st.markdown(f"""
+        <div style="background: #dbeafe; padding: 0.75rem 1rem; border-radius: 8px; margin: 0.5rem 0 1rem 0; border-left: 4px solid #3b82f6;">
+            <span style="font-weight: 600; color: #1e40af;">Viewing: {selected_account}</span>
+            <span style="color: #3b82f6; margin-left: 1rem;">{len(filtered_df)} leads</span>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        filtered_df = leads_df.copy()
+
+    return filtered_df, selected_account
+
+
+def render_metrics(leads_df):
+    """Render key metrics cards based on filtered data only - no mock data."""
     total_leads = len(leads_df)
+    if total_leads == 0:
+        st.info("No leads found for the selected filter.")
+        return
+
     critical_leads = len(leads_df[leads_df['priority'] == 'CRITICAL'])
     high_leads = len(leads_df[leads_df['priority'] == 'HIGH'])
-    avg_score = leads_df['score'].mean() if len(leads_df) > 0 else 0
+    avg_score = leads_df['score'].mean()
     total_value = leads_df['estimated_value'].sum()
+
+    # Calculate real metrics from the data
+    high_priority_count = critical_leads + high_leads
+    high_priority_value = leads_df[leads_df['priority'].isin(['CRITICAL', 'HIGH'])]['estimated_value'].sum()
 
     st.markdown('<div class="metric-row animate-in">', unsafe_allow_html=True)
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
+        # Format value appropriately based on size
+        if total_value >= 1e6:
+            value_display = f"${total_value/1e6:.2f}M"
+        elif total_value >= 1e3:
+            value_display = f"${total_value/1e3:.0f}K"
+        else:
+            value_display = f"${total_value:,.0f}"
+
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-label">Total Pipeline</div>
-            <div class="metric-value">${total_value/1e6:.2f}M</div>
-            <div class="metric-change positive">
-                <span>↗</span> <span>+18.2%</span>
+            <div class="metric-value">{value_display}</div>
+            <div class="metric-change neutral">
+                <span>📊</span> <span>{total_leads} leads</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -606,43 +657,35 @@ def render_metrics(leads_df, stats):
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">Active Leads</div>
-            <div class="metric-value">{total_leads}</div>
-            <div class="metric-change neutral">
-                <span>→</span> <span>{critical_leads} Critical</span>
+            <div class="metric-label">High Priority</div>
+            <div class="metric-value">{high_priority_count}</div>
+            <div class="metric-change {"negative" if critical_leads > 0 else "neutral"}">
+                <span>🔴</span> <span>{critical_leads} Critical, {high_leads} High</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col3:
+        score_class = "positive" if avg_score >= 65 else "neutral" if avg_score >= 50 else "negative"
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-label">Avg Lead Score</div>
             <div class="metric-value">{avg_score:.0f}</div>
-            <div class="metric-change positive">
-                <span>↗</span> <span>+5.3 pts</span>
+            <div class="metric-change {score_class}">
+                <span>🎯</span> <span>{"Strong" if avg_score >= 65 else "Moderate" if avg_score >= 50 else "Needs focus"}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col4:
+        # Count unique product types
+        unique_products = leads_df['product_description'].nunique()
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">At-Risk Systems</div>
-            <div class="metric-value">{stats['critical_systems']}</div>
-            <div class="metric-change negative">
-                <span>↗</span> <span>Needs attention</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col5:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Win Rate</div>
-            <div class="metric-value">67%</div>
-            <div class="metric-change positive">
-                <span>↗</span> <span>+12% MoM</span>
+            <div class="metric-label">Products at Risk</div>
+            <div class="metric-value">{unique_products}</div>
+            <div class="metric-change neutral">
+                <span>🖥️</span> <span>Unique systems</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -903,7 +946,7 @@ def render_lead_priorities(leads_df):
     </div>
     """, unsafe_allow_html=True)
 
-    # Filters
+    # Secondary filters (account filter is already at top of page)
     filter_col1, filter_col2, filter_col3 = st.columns([2, 2, 3])
 
     with filter_col1:
@@ -927,7 +970,7 @@ def render_lead_priorities(leads_df):
             key="sort_filter"
         )
 
-    # Apply filters
+    # Apply filters (leads_df is already filtered by account from main filter)
     filtered_df = leads_df.copy()
     if priority_filter != "All":
         filtered_df = filtered_df[filtered_df['priority'] == priority_filter]
@@ -1382,12 +1425,17 @@ def main():
     # Load data
     leads_df, stats = load_dashboard_data()
 
-    # Render sections
+    # Render header
     render_header(stats)
-    render_metrics(leads_df, stats)
-    render_insights(leads_df)
-    render_lead_priorities(leads_df)
-    render_analytics(leads_df)
+
+    # Account filter at top - filters everything below
+    filtered_df, selected_account = render_account_filter(leads_df)
+
+    # All sections now use filtered data
+    render_metrics(filtered_df)
+    render_insights(filtered_df)
+    render_lead_priorities(filtered_df)
+    render_analytics(filtered_df)
 
     # Footer
     st.markdown("""

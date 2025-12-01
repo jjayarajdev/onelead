@@ -5,7 +5,7 @@ database:
   echo: false
 
 data_sources:
-  install_base: "data/DataExportAug29th.xlsx"
+  install_base: "data/DataExportSample.xlsx"
   service_sku: "data/LS_SKU_for_Onelead.xlsx"
 
 scoring_weights:

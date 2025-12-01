@@ -7,6 +7,7 @@ from .opportunity import Opportunity
 from .project import Project
 from .service_catalog import ServiceCatalog, ServiceSKUMapping
 from .lead import Lead
+from .service_credit import ServiceCredit
 
 __all__ = [
     'Base',
@@ -20,4 +21,5 @@ __all__ = [
     'ServiceCatalog',
     'ServiceSKUMapping',
     'Lead',
+    'ServiceCredit',
 ]
