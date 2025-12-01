@@ -1645,10 +1645,45 @@ def main():
                 All data sources link to the same Account record.
                 """)
 
+        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+
+        with st.expander("🏢 **Global Account Name Filter** *(New Feature)*", expanded=True):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("""
+                **Feature**: Global Account Name filter at dashboard level
+
+                **How it works:**
+                - `get_real_account_name()`: Resolves actual company names from territory_id
+                - Filters out numeric-only names (ST IDs incorrectly shown as names)
+                - Case-insensitive deduplication prevents duplicates
+
+                **Implementation:**
+                - Lookups via territory_id across all data sources
+                - Normalizes names to handle variations (Apple Inc vs APPLE INC.)
+                - Single filter applies to all three categories
+                """)
+
+            with col2:
+                st.markdown("""
+                **Benefits:**
+                - ✅ Filter all categories by real company name
+                - ✅ See actual customer names, not territory IDs
+                - ✅ Consistent naming across Install Base, Projects, Opportunities
+                - ✅ No duplicate entries in dropdown
+
+                **Usage:**
+                Select any account from the "Account Filter" dropdown above the tabs to filter
+                Install Base Assets, Ongoing Projects, and Completed Projects simultaneously.
+                """)
+
 
     with tab5:
         st.markdown("### 🔍 Account Insights - Cross-sell & Up-sell Recommendations")
         st.markdown("Search by **Opportunity ID**, **Account ST ID**, or **Account Name** to get intelligent service recommendations")
+
+        st.info("💡 **Tip:** You can also use the **Account Filter** dropdown above the tabs to quickly filter by company name across all categories.")
 
         # Search interface
         search_col1, search_col2 = st.columns([3, 1])
@@ -1868,11 +1903,11 @@ def main():
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.markdown("""
+            st.markdown(f"""
             ### 📦 Category 1
             **Install Base Assets**
 
-            **Source:** 63 hardware assets (direct from Excel)
+            **Source:** {stats['install_base_leads']} hardware assets
 
             **Shows:**
             - Product details
@@ -1887,11 +1922,11 @@ def main():
             """)
 
         with col2:
-            st.markdown("""
+            st.markdown(f"""
             ### 🚀 Category 2
             **Ongoing Projects**
 
-            **Source:** 226 active projects
+            **Source:** {stats['ongoing_projects']} active projects
 
             **Identifies:**
             - Pre-completion services
@@ -1905,11 +1940,11 @@ def main():
             """)
 
         with col3:
-            st.markdown("""
+            st.markdown(f"""
             ### ✅ Category 3
             **Completed Projects**
 
-            **Source:** 2,168 projects (2yr)
+            **Source:** {stats['completed_projects']:,} projects (2yr)
 
             **Identifies:**
             - Re-engagement opportunities
@@ -2044,6 +2079,24 @@ def main():
             st.caption("Product-to-service SKUs")
 
         st.markdown("---")
+
+        st.markdown("""
+        ## 🏢 New Feature: Global Account Name Filter
+
+        OneLead Complete now includes a **Global Account Name Filter** that allows you to:
+
+        - **Filter by Company Name**: Select any account from the dropdown to filter all categories simultaneously
+        - **Real Names, Not IDs**: Shows actual company names (e.g., "Apple Inc") instead of territory IDs
+        - **Smart Deduplication**: Automatically handles naming variations (Apple Inc vs APPLE INC.)
+        - **Cross-Category Filtering**: Applies to Install Base Assets, Ongoing Projects, and Completed Projects
+
+        **How it works:**
+        - The `get_real_account_name()` function resolves company names via territory_id lookup
+        - Case-insensitive normalization ensures consistent naming across all data sources
+        - The filter appears above the tabs in the "Account Filter" section
+
+        ---
+        """)
 
         st.markdown("""
         ## 🎓 Service Recommendation Engine
