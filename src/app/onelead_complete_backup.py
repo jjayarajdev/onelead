@@ -1944,7 +1944,7 @@ def main():
             ### ✅ Category 3
             **Completed Projects**
 
-            **Source:** {stats['completed_projects']:,} projects (2yr)
+            **Source:** {stats['completed_projects_2yr']:,} projects (2yr)
 
             **Identifies:**
             - Re-engagement opportunities
