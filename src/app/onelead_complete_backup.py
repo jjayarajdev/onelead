@@ -31,6 +31,24 @@ st.set_page_config(
 # Custom CSS with enhanced styling
 st.markdown("""
 <style>
+    /* Force full-width layout on Streamlit Cloud */
+    .block-container {
+        max-width: 100% !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+    .main .block-container {
+        max-width: 100% !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        max-width: 100% !important;
+    }
+    .stApp {
+        max-width: 100% !important;
+    }
+    section[data-testid="stSidebar"] + div {
+        max-width: 100% !important;
+    }
     .main-header {
         font-size: 3rem;
         font-weight: 700;
